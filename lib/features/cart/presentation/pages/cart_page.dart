@@ -113,7 +113,6 @@ class _CartPageState extends State<CartPage> {
                       children: [
                         ...state.items.map((item) => _CartItemCard(item: item)),
                         const SizedBox(height: 20),
-                        _PromoCodeInput(),
                       ],
                     ),
                   ),
@@ -121,8 +120,7 @@ class _CartPageState extends State<CartPage> {
 
                 _OrderSummary(
                   subtotal: subtotal,
-                  discount: state.discount,
-                  total: (subtotal - state.discount),
+                  total: subtotal,
                 ),
               ],
             );
@@ -286,13 +284,11 @@ class _QtyButton extends StatelessWidget {
 
 class _OrderSummary extends StatelessWidget {
   final double subtotal;
-  final double discount;
   final double total;
   static const _primaryColor = Color(0xFF2D3194);
 
   const _OrderSummary({
     required this.subtotal,
-    required this.discount,
     required this.total,
   });
 
@@ -312,14 +308,6 @@ class _OrderSummary extends StatelessWidget {
           _SummaryRow(
               label: context.tr('Subtotal', 'المجموع الفرعي'),
               value: '\$${subtotal.toStringAsFixed(2)}'),
-          if (discount > 0) ...[
-            const SizedBox(height: 6),
-            _SummaryRow(
-              label: context.tr('Discount', 'الخصم'),
-              value: '-\$${discount.toStringAsFixed(2)}',
-              valueColor: Colors.green,
-            ),
-          ],
           const Divider(height: 24),
           _SummaryRow(
             label: context.tr('Total', 'الإجمالي'),
@@ -353,62 +341,6 @@ class _OrderSummary extends StatelessWidget {
   }
 }
 
-class _PromoCodeInput extends StatefulWidget {
-  @override
-  State<_PromoCodeInput> createState() => _PromoCodeInputState();
-}
-
-class _PromoCodeInputState extends State<_PromoCodeInput> {
-  final _controller = TextEditingController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              decoration: InputDecoration(
-                hintText: context.tr('Enter Promo Code', 'أدخل كود الخصم'),
-                border: InputBorder.none,
-                hintStyle: const TextStyle(fontSize: 14),
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              if (_controller.text.isNotEmpty) {
-                context
-                    .read<CartCubit>()
-                    .applyPromoCode(_controller.text.trim());
-              }
-            },
-            child: Text(
-              context.tr('Apply', 'تطبيق'),
-              style: const TextStyle(
-                color: Color(0xFF2D3194),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _SummaryRow extends StatelessWidget {
   final String label;

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ─── Result Types ─────────────────────────────────────────────────────────────
@@ -28,28 +27,20 @@ class PromoCodeService {
   /// percentage-based discounts.
   Future<PromoResult> validate(String code, double subtotal) async {
     try {
-      final trimmedCode = code.trim();
-      print('DEBUG: Querying code: $trimmedCode');
+      final cleanCode = code.trim().toUpperCase();
+      print('DEBUG: Validating code: $cleanCode');
 
-      // Case-insensitive lookup
       final data = await _client
           .from('promo_codes')
           .select()
-          .ilike('code', trimmedCode)
+          .eq('code', cleanCode)
+          .eq('active', true)
           .maybeSingle();
 
-      print('DEBUG: Supabase response: $data');
+      print('DEBUG: Response: $data');
 
       if (data == null) {
-        print('DEBUG: Request returned null. Check RLS SELECT policy.');
-        return const PromoInvalid('الكود غير صحيح');
-      }
-
-      // ── Check is_active ───────────────────────────────────────────────────
-      final bool isActive = data['is_active'] as bool? ?? false;
-      if (!isActive) {
-        debugPrint('[PromoCodeService] is_active is false');
-        return const PromoInvalid('هذا الكود غير مفعّل');
+        return const PromoInvalid('invalid');
       }
 
       // ── Check expiry_date ─────────────────────────────────────────────────
@@ -57,8 +48,7 @@ class PromoCodeService {
       if (expiryRaw != null) {
         final expiry = DateTime.tryParse(expiryRaw);
         if (expiry != null && DateTime.now().toUtc().isAfter(expiry.toUtc())) {
-          debugPrint('[PromoCodeService] Code expired. Now(UTC)=${DateTime.now().toUtc()} vs Expiry(UTC)=${expiry.toUtc()}');
-          return const PromoInvalid('الكود منتهي الصلاحية');
+          return const PromoInvalid('expired');
         }
       }
 
@@ -66,11 +56,10 @@ class PromoCodeService {
       final int usedCount = (data['used_count'] as num? ?? 0).toInt();
       final int usageLimit = (data['usage_limit'] as num? ?? 0).toInt();
       if (usageLimit > 0 && usedCount >= usageLimit) {
-        return const PromoInvalid('تم الوصول للحد الأقصى لاستخدام هذا الكود');
+        return const PromoInvalid('limit');
       }
 
       // ── Parse discount ────────────────────────────────────────────────────
-      // Supports: "80%" → percentage, "50" or 50 → fixed EGP amount
       final dynamic rawDiscount = data['discount'];
       double discountAmount = 0.0;
 
@@ -87,18 +76,19 @@ class PromoCodeService {
       }
 
       if (discountAmount <= 0) {
-        return const PromoInvalid('الكود لا يتضمن خصماً صالحاً');
+        return const PromoInvalid('invalid');
       }
 
-      // Cap discount so total never goes negative
       discountAmount = discountAmount.clamp(0.0, subtotal);
 
       return PromoValid(
         discountAmount: discountAmount,
-        code: (data['code'] as String? ?? code).trim(),
+        code: (data['code'] as String? ?? cleanCode),
       );
-    } catch (e) {
-      return const PromoInvalid('حدث خطأ أثناء التحقق من الكود');
+    } catch (e, stack) {
+      print('DEBUG: Query FAILED with error: $e');
+      print('DEBUG: Stack trace: $stack');
+      return const PromoInvalid('error');
     }
   }
 

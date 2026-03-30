@@ -144,7 +144,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 items: cartState.items,
                                 subtotal: cartState.subtotal,
                                 total: cartState.subtotal -
-                                    cartState.discount -
                                     promoDiscountValue,
                                 promoDiscount: promoDiscountValue,
                                 appliedPromo: appliedPromoCode,

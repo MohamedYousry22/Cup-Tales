@@ -8,12 +8,13 @@ import 'core/config/supabase_config.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'app.dart';
 import 'firebase_options.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 void main() async {
   final t0 = DateTime.now();
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase with generated options
+  // 1. Initialize Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -21,6 +22,37 @@ void main() async {
     debugPrint('[Startup] Firebase Initialized Successfully');
   } catch (e) {
     debugPrint('[Startup] Firebase Initialization Error: $e');
+  }
+
+  // 2. Initialize OneSignal
+  try {
+    OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+    OneSignal.initialize("70034a90-6547-41cc-8791-c310527ea5dd");
+    
+    // Request permission (blocking before runApp for debug/init)
+    await OneSignal.Notifications.requestPermission(true);
+    
+    // Debug - helpful for dashboard verification
+    // Giving it a 3-second delay to ensure registration is complete after a fresh install
+    print("DEBUG: Delay started (3 seconds to OneSignal ID)");
+    Future.delayed(const Duration(seconds: 3), () {
+      print("DEBUG: Delay finished (Fetching OneSignal ID)");
+      final sub = OneSignal.User.pushSubscription;
+      debugPrint('DEBUG OneSignal optedIn: ${sub.optedIn}');
+      debugPrint('DEBUG OneSignal id: ${sub.id}');
+      debugPrint('DEBUG OneSignal token: ${sub.token}');
+    });
+    
+    // Show notifications as banner even when app is open (foreground)
+    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+      debugPrint('DEBUG: Foreground notification received: ${event.notification.title}');
+      event.preventDefault(); // Prevent default internal display to force our own
+      event.notification.display();
+    });
+    
+    debugPrint('[Startup] OneSignal Initialized');
+  } catch (e) {
+    debugPrint('[Startup] OneSignal Initialization Error: $e');
   }
 
   debugPrint('\n======================================================');
@@ -36,12 +68,12 @@ void main() async {
     onDetach: () => debugPrint('[Startup Lifecycle] ON_DETACH'),
   );
 
-  // ── STEP 1: Register all DI factories synchronously ───────
+  // 3. Register all DI factories synchronously
   di.registerSync();
   debugPrint(
       '[Startup] registerSync done  +${DateTime.now().difference(t0).inMilliseconds}ms');
 
-  // ── STEP 2: Show the app immediately ──────────────────────
+  // 4. Show the app immediately
   debugPrint('[Startup] runApp called -> CupTalesApp');
   runApp(const CupTalesApp());
   debugPrint(

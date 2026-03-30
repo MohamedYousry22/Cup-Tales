@@ -43,28 +43,8 @@ class CartCubit extends Cubit<CartState> {
 
   SupabaseClient get _client => Supabase.instance.client;
 
-  // ── Helper to emit Loaded state with preserved discount ────────────────
-
-  void _emitLoaded({
-    required List<SupabaseCartItem> items,
-    double? discount,
-    String? promoCode,
-  }) {
-    final currentDiscount = discount ??
-        (state is CartLoaded ? (state as CartLoaded).discount : 0.0);
-    final currentPromo = promoCode ??
-        (state is CartLoaded ? (state as CartLoaded).appliedPromoCode : null);
-
-    // If promo code exists but discount is null, we might need to recalculate
-    // (but simpler to just recalculate if we have the percentage, which we don't store)
-    // For now, let's just reset discount if items change, unless we fetch it again
-
-    emit(CartLoaded(
-      items: items,
-      discount: currentDiscount,
-      appliedPromoCode: currentPromo,
-    ));
-
+  void _emitLoaded({required List<SupabaseCartItem> items}) {
+    emit(CartLoaded(items: items));
     _saveToCache(items);
   }
 
@@ -79,7 +59,6 @@ class CartCubit extends Cubit<CartState> {
 
     emit(CartLoading());
     try {
-      // Professional fetch: Join with products to get ALWAYS fresh data
       final data = await _client
           .from('cart')
           .select('*, products(name, price, price_m, image, image_url)')
@@ -89,7 +68,7 @@ class CartCubit extends Cubit<CartState> {
           .map((e) => SupabaseCartItem.fromJson(e as Map<String, dynamic>))
           .toList();
 
-      _emitLoaded(items: items, discount: 0.0, promoCode: null);
+      _emitLoaded(items: items);
     } catch (e) {
       emit(CartError('Failed to load cart: ${e.toString()}'));
     }
@@ -121,12 +100,11 @@ class CartCubit extends Cubit<CartState> {
             .from('cart')
             .update({'quantity': newQty}).eq('id', existing['id']);
       } else {
-        // Professional Insert: Store relations, quantity AND price
         await _client.from('cart').insert({
           'user_id': user.id,
           'product_id': productId,
           'quantity': quantity,
-          'price': price, // Persistence fix
+          'price': price,
         });
       }
 
@@ -174,53 +152,18 @@ class CartCubit extends Cubit<CartState> {
     final user = _client.auth.currentUser;
     if (user == null) return;
 
-    final data = await _client
-        .from('cart')
-        .select('*, products(name, price, price_m, image, image_url)')
-        .eq('user_id', user.id);
-    final items = (data as List<dynamic>)
-        .map((e) => SupabaseCartItem.fromJson(e as Map<String, dynamic>))
-        .toList();
-
-    // Recalculate discount if promo exists
-    if (state is CartLoaded) {
-      final s = state as CartLoaded;
-      if (s.appliedPromoCode != null) {
-        await applyPromoCode(s.appliedPromoCode!);
-      } else {
-        _emitLoaded(items: items);
-      }
-    } else {
-      _emitLoaded(items: items);
-    }
-  }
-
-  // ── Promo Code ──────────────────────────────────────────────────────────
-
-  Future<void> applyPromoCode(String code) async {
-    if (state is! CartLoaded) return;
-    final items = (state as CartLoaded).items;
-    final subtotal = (state as CartLoaded).subtotal;
-
     try {
       final data = await _client
-          .from('discount_codes')
-          .select()
-          .eq('code', code)
-          .eq('is_active', true)
-          .maybeSingle();
+          .from('cart')
+          .select('*, products(name, price, price_m, image, image_url)')
+          .eq('user_id', user.id);
+      final items = (data as List<dynamic>)
+          .map((e) => SupabaseCartItem.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-      if (data != null) {
-        final percent = (data['discount_percent'] as num).toDouble();
-        final discount = subtotal * (percent / 100);
-
-        _emitLoaded(items: items, discount: discount, promoCode: code);
-      } else {
-        emit(const CartError('Invalid promo code'));
-        _emitLoaded(items: items, discount: 0.0, promoCode: null);
-      }
+      _emitLoaded(items: items);
     } catch (e) {
-      emit(const CartError('Error applying promo code'));
+      emit(CartError('Failed to refresh cart: ${e.toString()}'));
     }
   }
 
@@ -240,8 +183,7 @@ class CartCubit extends Cubit<CartState> {
 
     emit(CartCheckingOut());
     try {
-      final double totalAmount =
-          cartState.subtotal - cartState.discount - promoDiscount;
+      final double totalAmount = cartState.subtotal - promoDiscount;
       
       final orderData = {
         'user_id': user.id,
@@ -264,14 +206,12 @@ class CartCubit extends Cubit<CartState> {
       await _client.from('orders').insert(orderData);
 
       await _client.from('cart').delete().eq('user_id', user.id);
-      _hive.cartBox.delete('items'); // Clear local cache too
+      _hive.cartBox.delete('items'); 
       emit(CartCheckedOut());
     } catch (e) {
       emit(CartError('Checkout failed: ${e.toString()}'));
     }
   }
-
-  // ── Legacy stub (kept for compatibility) ───────────────────────────────
 
   Future<void> clearCart() async {
     final user = _client.auth.currentUser;

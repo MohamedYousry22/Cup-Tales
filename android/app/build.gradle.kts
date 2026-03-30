@@ -21,33 +21,21 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
-    signingConfigs {
-        getByName("debug") {
-            storeFile = file("debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-        }
-    }
-
     defaultConfig {
         applicationId = "com.cup.tales.cup_tales"
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         
-        // ربط الإعدادات الجديدة بالـ debug
-        signingConfig = signingConfigs.getByName("debug")
+
     }
 
     buildTypes {
         getByName("release") {
             // حالياً هنستخدم نفس بصمة الـ debug للـ release عشان التجربة تشتغل
-            signingConfig = signingConfigs.getByName("debug")
         }
         getByName("debug") {
-            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }

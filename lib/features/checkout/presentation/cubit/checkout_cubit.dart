@@ -149,7 +149,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         double amount = 0.0;
         if (_cartCubit.state is CartLoaded) {
           final cartState = _cartCubit.state as CartLoaded;
-          amount = cartState.subtotal - cartState.discount - promoDiscount;
+          amount = cartState.subtotal - promoDiscount;
         }
 
         if (amount <= 0) throw Exception('Invalid order amount');
@@ -253,7 +253,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
     try {
       final double totalAmount =
-          cartState.subtotal - cartState.discount - promoDiscount;
+          cartState.subtotal - promoDiscount;
 
       final String branchName = state is CheckoutInitial
           ? ((state as CheckoutInitial).selectedBranch?.nameAr ?? '')
