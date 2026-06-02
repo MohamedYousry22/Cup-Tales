@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../models/category_model.dart';
+import 'package:flutter/foundation.dart';
 
 abstract class CategoriesRemoteDS {
   Future<List<CategoryModel>> getCategories();
@@ -17,10 +18,10 @@ class CategoriesRemoteDSImpl implements CategoriesRemoteDS {
         .select()
         .order('created_at', ascending: true);
 
-    print('DEBUG: raw categoriesResponse from Supabase count: ${categoriesResponse.length}');
+    debugPrint('DEBUG: raw categoriesResponse from Supabase count: ${categoriesResponse.length}');
     if (categoriesResponse.isNotEmpty) {
-      print('DEBUG: First category keys: ${categoriesResponse.first.keys}');
-      print('DEBUG: First category data: ${categoriesResponse.first}');
+      debugPrint('DEBUG: First category keys: ${categoriesResponse.first.keys}');
+      debugPrint('DEBUG: First category data: ${categoriesResponse.first}');
     }
 
     // 2. Fetch all potential Category Covers from the products table

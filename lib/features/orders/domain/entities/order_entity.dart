@@ -11,6 +11,7 @@ class OrderEntity extends Equatable {
   final String branchName;
   final String? promoCode;
   final double discountAmount;
+  final List<String> hiddenForUsers;
   final DateTime createdAt;
 
   const OrderEntity({
@@ -22,8 +23,35 @@ class OrderEntity extends Equatable {
     this.branchName = '',
     this.promoCode,
     this.discountAmount = 0.0,
+    this.hiddenForUsers = const [],
     required this.createdAt,
   });
+
+  OrderEntity copyWith({
+    String? id,
+    String? userId,
+    List<OrderItemEntity>? items,
+    double? totalAmount,
+    String? status,
+    String? branchName,
+    Object? promoCode = _sentinel,
+    double? discountAmount,
+    List<String>? hiddenForUsers,
+    DateTime? createdAt,
+  }) {
+    return OrderEntity(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      items: items ?? this.items,
+      totalAmount: totalAmount ?? this.totalAmount,
+      status: status ?? this.status,
+      branchName: branchName ?? this.branchName,
+      promoCode: promoCode == _sentinel ? this.promoCode : promoCode as String?,
+      discountAmount: discountAmount ?? this.discountAmount,
+      hiddenForUsers: hiddenForUsers ?? this.hiddenForUsers,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -35,6 +63,9 @@ class OrderEntity extends Equatable {
         branchName,
         promoCode,
         discountAmount,
+        hiddenForUsers,
         createdAt,
       ];
 }
+
+const Object _sentinel = Object();

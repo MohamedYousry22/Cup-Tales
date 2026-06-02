@@ -19,21 +19,29 @@ class BottomNavBar extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 24, left: 16, right: 16),
       color: Colors.transparent,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(30),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
           child: Material(
-            color: Colors.white.withOpacity(0.82),
+            color: Colors.white.withValues(alpha: 0.34),
             child: Container(
               height: 72,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.black.withOpacity(0.06)),
+                borderRadius: BorderRadius.circular(30),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.64),
+                    Colors.white.withValues(alpha: 0.28),
+                  ],
+                ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.10),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
                   ),
                 ],
               ),

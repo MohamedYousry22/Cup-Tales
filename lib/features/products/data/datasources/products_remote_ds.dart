@@ -20,18 +20,8 @@ class ProductsRemoteDSImpl implements ProductsRemoteDS {
     final rawProducts = response as List<dynamic>;
 
     return rawProducts
-        .where((json) {
-          // A record is considered a Category Cover if all 3 prices are null.
-          final pMap = json as Map<String, dynamic>;
-          final hasS = pMap['price_s'] != null;
-          final hasM = pMap['price_m'] != null;
-          final hasL = pMap['price_l'] != null;
-
-          // Keep the product ONLY if it has at least one price defined.
-          // Otherwise, it's just a cover image and should be hidden from menus.
-          return hasS || hasM || hasL;
-        })
         .map((json) => ProductModel.fromJson(json as Map<String, dynamic>))
+        .where((product) => product.basePrice > 0)
         .toList();
   }
 }

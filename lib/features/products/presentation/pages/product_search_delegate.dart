@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../domain/entities/product_entity.dart';
+import '../../../../core/widgets/antigravity_loader.dart';
 import '../../data/models/product_model.dart';
 import '../widgets/product_grid_card.dart';
 
@@ -55,14 +56,13 @@ class ProductSearchDelegate extends SearchDelegate<ProductEntity?> {
     final supabase = Supabase.instance.client;
     // Querying across English and Arabic names
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: supabase
-          .from('products')
-          .select()
-          .or('name.ilike.%$query%,name_ar.ilike.%$query%'),
+      future: supabase.from('products').select().or(
+          'name.ilike.%$query%,name_en.ilike.%$query%,name_ar.ilike.%$query%'),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-              child: CircularProgressIndicator(color: Colors.brown));
+            child: AntigravityLoaderCore(size: 60),
+          );
         }
 
         if (snapshot.hasError) {

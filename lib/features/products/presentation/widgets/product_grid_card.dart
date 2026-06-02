@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../domain/entities/product_entity.dart';
-import '../../../../features/cart/presentation/cubit/cart_cubit.dart';
 import '../../../../core/localization/language_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -75,21 +74,10 @@ class ProductGridCard extends StatelessWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          context.read<CartCubit>().addToCart(
-                                productId: product.id,
-                                productName: product.name,
-                                price: product.basePrice,
-                                image: product.imageUrl,
-                                quantity: 1,
-                              );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  '${context.tr(product.name, product.nameAr ?? product.name)} ${context.loc.addedToCart}'),
-                              backgroundColor: Colors.green,
-                              duration: const Duration(seconds: 1),
-                              behavior: SnackBarBehavior.floating,
-                            ),
+                          Navigator.pushNamed(
+                            context,
+                            AppRouter.productDetails,
+                            arguments: product,
                           );
                         },
                         child: Container(

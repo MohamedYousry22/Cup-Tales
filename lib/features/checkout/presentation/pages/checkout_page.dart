@@ -3,20 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/checkout_cubit.dart';
 import '../cubit/checkout_state.dart';
 import '../../../../core/di/injection_container.dart';
-import '../../../../core/services/auth_service.dart';
-import '../../../../features/auth/data/profile_service.dart';
-import '../../../../core/local_storage/hive_service.dart';
 import '../../../../features/cart/presentation/cubit/cart_cubit.dart';
 import '../../../../features/cart/presentation/cubit/cart_state.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/language_cubit.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/antigravity_loader.dart';
 import '../widgets/order_summary_card.dart';
 import '../widgets/payment_method_card.dart';
 import '../widgets/confirm_order_button.dart';
 import '../../../../core/models/branch.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -26,50 +23,11 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
-  final TextEditingController _walletController = TextEditingController();
   final TextEditingController _promoController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfilePhone();
-  }
-
-  Future<void> _loadProfilePhone() async {
-    try {
-      final user = sl<AuthService>().currentUser;
-      if (user != null) {
-        // 1. Try reading from Hive cache first for an instant zero-lag experience
-        final cachedProfile = sl<HiveService>().profileBox.get('current_user') as Map?;
-        if (cachedProfile != null) {
-          final phone = cachedProfile['phone'] as String?;
-          if (phone != null && phone != 'NA' && phone.isNotEmpty) {
-            setState(() {
-              _walletController.text = phone;
-            });
-            return; // Cache hit, exit early
-          }
-        }
-
-        // 2. Fallback to API if cache missed (e.g., cleared data or first run)
-        final profile = await sl<ProfileService>().getProfile(user.id);
-        final phone = profile?['phone'] as String?;
-        if (phone != null && phone != 'NA' && phone.isNotEmpty) {
-          setState(() {
-            _walletController.text = phone;
-          });
-          // Update the cache so it's ready for next time
-          sl<HiveService>().profileBox.put('current_user', profile);
-        }
-      }
-    } catch (_) {
-      // Handle silently (e.g., network timeout) so app doesn't crash on checkout
-    }
-  }
+  bool _isBranchPickerExpanded = false;
 
   @override
   void dispose() {
-    _walletController.dispose();
     _promoController.dispose();
     super.dispose();
   }
@@ -81,14 +39,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return BlocProvider(
       create: (_) => sl<CheckoutCubit>(param1: context.read<CartCubit>()),
       child: Scaffold(
-        backgroundColor: Colors.grey.shade50,
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: Text(
             context.loc.checkout,
             style: const TextStyle(
                 color: AppColors.primary, fontWeight: FontWeight.bold),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
           elevation: 0,
           centerTitle: true,
           iconTheme: const IconThemeData(color: AppColors.primary),
@@ -97,11 +56,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
           listener: (context, state) {
             if (state is CheckoutSuccess) {
               Navigator.pushReplacementNamed(context, AppRouter.paymentSuccess);
-            } else if (state is CheckoutPaymentRedirect) {
-              Navigator.pushNamed(context, AppRouter.paymobPayment, arguments: {
-                'url': state.url,
-                'cubit': context.read<CheckoutCubit>(),
-              });
             } else if (state is CheckoutError) {
               ScaffoldMessenger.of(context)
                   .showSnackBar(SnackBar(content: Text(state.message)));
@@ -110,7 +64,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
           builder: (context, state) {
             if (state is CheckoutProcessing) {
               return const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary));
+                child: AntigravityLoaderCore(size: 80),
+              );
             }
 
             // Logic to handle state data
@@ -143,8 +98,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               return OrderSummaryCard(
                                 items: cartState.items,
                                 subtotal: cartState.subtotal,
-                                total: cartState.subtotal -
-                                    promoDiscountValue,
+                                total: cartState.subtotal - promoDiscountValue,
                                 promoDiscount: promoDiscountValue,
                                 appliedPromo: appliedPromoCode,
                               );
@@ -155,7 +109,32 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
                         const SizedBox(height: 24),
 
-                        // --- 2. كود الخصم ---
+                        // --- 2. استلام من الفرع ---
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(context.loc.pickupFromBranch,
+                                style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary)),
+                            if (!_isBranchPickerExpanded)
+                              TextButton(
+                                onPressed: () => setState(
+                                    () => _isBranchPickerExpanded = true),
+                                child: Text(context.tr('Change', 'تغيير'),
+                                    style: const TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        _buildBranchPicker(context, state),
+
+                        const SizedBox(height: 24),
+
+                        // --- 3. كود الخصم ---
                         Text(context.tr('Promo Code', 'كود الخصم'),
                             style: const TextStyle(
                                 fontSize: 18,
@@ -170,27 +149,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           promoError: promoErrorCode,
                           onApply: () {
                             final code = _promoController.text.trim();
-                            if (code.isNotEmpty)
+                            if (code.isNotEmpty) {
                               context
                                   .read<CheckoutCubit>()
                                   .applyPromoCode(code);
+                            }
                           },
                           onRemove: () {
                             _promoController.clear();
                             context.read<CheckoutCubit>().removePromoCode();
                           },
                         ),
-
-                        const SizedBox(height: 32),
-
-                        // --- 3. استلام من الفرع ---
-                        Text(context.loc.pickupFromBranch,
-                            style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary)),
-                        const SizedBox(height: 12),
-                        _buildBranchPicker(context, state),
 
                         const SizedBox(height: 32),
 
@@ -203,10 +172,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         const SizedBox(height: 16),
                         _buildPaymentMethods(context, selectedMethod),
 
-                        if (selectedMethod == 'Wallet') ...[
-                          const SizedBox(height: 16),
-                          _buildWalletField(context),
-                        ],
                         const SizedBox(height: 40),
                       ],
                     ),
@@ -215,11 +180,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 // زر التأكيد ثابت في الأسفل
                 ConfirmOrderButton(
                   onPressed: () {
-                    context.read<CheckoutCubit>().processPayment(
-                          walletNumber: selectedMethod == 'Wallet'
-                              ? _walletController.text
-                              : null,
-                        );
+                    context
+                        .read<CheckoutCubit>()
+                        .processPayment(isArabic: context.loc.isAr);
                   },
                 ),
               ],
@@ -230,16 +193,98 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
+  // ── Branch name translation maps ─────────────────────────────────────────
+  // Used when DB branches don't have a separate name_ar/name_en column.
+  static const Map<String, String> _branchArMap = {
+    'rehab': 'فرع الرحاب',
+    'mahalla1': 'فرع المحلة 1 - طريق طنطا',
+    'mahalla2': 'فرع المحلة 2 - ش رضا حافظ',
+  };
+  static const Map<String, String> _branchEnMap = {
+    'rehab': 'Rehab Branch',
+    'mahalla1': 'Mahalla Branch 1 (Tanta Road)',
+    'mahalla2': 'Mahalla Branch 2 (Reda Hafez St)',
+  };
+  static const Map<String, String> _areaArMap = {
+    'rehab': 'القاهرة الجديدة',
+    'mahalla1': 'المحلة الكبرى',
+    'mahalla2': 'المحلة الكبرى',
+  };
+  static const Map<String, String> _areaEnMap = {
+    'rehab': 'New Cairo',
+    'mahalla1': 'El Mahalla El Kubra',
+    'mahalla2': 'El Mahalla El Kubra',
+  };
+
   Widget _buildBranchPicker(BuildContext context, CheckoutState state) {
+    if (state is CheckoutInitial && state.branches.isEmpty) {
+      return const Center(child: AntigravityLoaderCore(size: 80));
+    }
+
     final branchesList =
         state is CheckoutInitial ? state.branches : appBranches;
     final selectedBranch =
         state is CheckoutInitial ? state.selectedBranch : null;
 
+    final isEn = Localizations.localeOf(context).languageCode == 'en';
+
+    // If not expanded, show only the selected branch
+    if (!_isBranchPickerExpanded && selectedBranch != null) {
+      final String branchName = isEn
+          ? (_branchEnMap[selectedBranch.id] ?? selectedBranch.nameEn)
+          : (_branchArMap[selectedBranch.id] ?? selectedBranch.nameAr);
+
+      final String areaName = isEn
+          ? (_areaEnMap[selectedBranch.id] ?? selectedBranch.areaEn)
+          : (_areaArMap[selectedBranch.id] ?? selectedBranch.areaAr);
+
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.primary, width: 2),
+        ),
+        child: Row(
+          children: [
+            _branchLogoIcon(),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(branchName,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16)),
+                  if (areaName.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(areaName,
+                        style: TextStyle(
+                            fontSize: 13, color: Colors.grey.shade600)),
+                  ],
+                ],
+              ),
+            ),
+            const Icon(Icons.check_circle, color: AppColors.primary),
+          ],
+        ),
+      );
+    }
+
+    // Expanded View
     return Column(
       children: branchesList.map((branch) {
         final isSelected = selectedBranch?.id == branch.id;
-        final isEn = Localizations.localeOf(context).languageCode == 'en';
+
+        // Resolve name: prefer model data, fall back to translation map
+        final String branchName = isEn
+            ? (_branchEnMap[branch.id] ?? branch.nameEn)
+            : (_branchArMap[branch.id] ?? branch.nameAr);
+
+        final String areaName = isEn
+            ? (_areaEnMap[branch.id] ?? branch.areaEn)
+            : (_areaArMap[branch.id] ?? branch.areaAr);
+
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
@@ -250,16 +295,24 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 width: isSelected ? 2 : 1),
           ),
           child: RadioListTile<String>(
+            secondary: _branchLogoIcon(size: 30),
             value: branch.id,
             groupValue: selectedBranch?.id,
-            onChanged: (_) =>
-                context.read<CheckoutCubit>().selectBranch(branch),
+            onChanged: (id) {
+              if (id != null) {
+                final b = branchesList.firstWhere((b) => b.id == id);
+                context.read<CheckoutCubit>().selectBranch(b);
+                setState(() => _isBranchPickerExpanded = false);
+              }
+            },
             activeColor: AppColors.primary,
-            title: Text(isEn ? branch.nameEn : branch.nameAr,
+            title: Text(branchName,
                 style:
                     const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-            subtitle: Text(isEn ? branch.areaEn : branch.areaAr,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+            subtitle: areaName.isNotEmpty
+                ? Text(areaName,
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600))
+                : null,
           ),
         );
       }).toList(),
@@ -277,39 +330,25 @@ class _CheckoutPageState extends State<CheckoutPage> {
           onChanged: (v) =>
               context.read<CheckoutCubit>().selectPaymentMethod(v!),
         ),
-        const SizedBox(height: 12),
-        PaymentMethodCard(
-          title: context.tr('Visa / Mastercard', 'فيزا / ماستركارد'),
-          value: 'Visa',
-          groupValue: selectedMethod,
-          icon: Icons.credit_card,
-          onChanged: (v) =>
-              context.read<CheckoutCubit>().selectPaymentMethod(v!),
-        ),
-        const SizedBox(height: 12),
-        PaymentMethodCard(
-          title: context.loc.mobileWallet,
-          value: 'Wallet',
-          groupValue: selectedMethod,
-          icon: Icons.account_balance_wallet,
-          onChanged: (v) =>
-              context.read<CheckoutCubit>().selectPaymentMethod(v!),
-        ),
       ],
     );
   }
 
-  Widget _buildWalletField(BuildContext context) {
-    return TextField(
-      controller: _walletController,
-      keyboardType: TextInputType.phone,
-      decoration: InputDecoration(
-        hintText: '01xxxxxxxxx',
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade300)),
+  Widget _branchLogoIcon({double size = 32}) {
+    return Container(
+      width: size + 18,
+      height: size + 18,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
+      ),
+      child: Image.asset(
+        'assets/images/logo/logo.png',
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
       ),
     );
   }
@@ -356,7 +395,7 @@ class _PromoCodeField extends StatelessWidget {
                     hintText: context.tr('Enter promo code', 'أدخل كود الخصم'),
                     filled: true,
                     fillColor: hasApplied
-                        ? Colors.green.withOpacity(0.05)
+                        ? Colors.green.withValues(alpha: 0.05)
                         : Colors.white,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -374,7 +413,9 @@ class _PromoCodeField extends StatelessWidget {
               child: SizedBox(
                 height: 52,
                 child: isValidating
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(
+                        child: AntigravityLoaderCore(size: 24),
+                      )
                     : hasApplied
                         ? TextButton(
                             onPressed: onRemove,
@@ -405,7 +446,11 @@ class _PromoCodeField extends StatelessWidget {
         ),
         if (hasApplied) ...[
           const SizedBox(height: 8),
-          Text('تم تطبيق الكود! وفرت ${promoDiscount.toStringAsFixed(2)} ج.م',
+          Text(
+              context.tr(
+                'Code applied! You saved ${promoDiscount.toStringAsFixed(2)} ${context.loc.egp}',
+                'تم تطبيق الكود! وفرت ${promoDiscount.toStringAsFixed(2)} ${context.loc.egp}',
+              ),
               style: const TextStyle(
                   color: Colors.green,
                   fontWeight: FontWeight.bold,
@@ -421,8 +466,15 @@ class _PromoCodeField extends StatelessWidget {
   }
 
   String promoErrorCodeTranslate(BuildContext context, String error) {
-    if (error.contains('expired')) return 'الكود منتهي الصلاحية';
-    if (error.contains('limit')) return 'تم الوصول للحد الأقصى للاستخدام';
-    return 'الكود غير صحيح';
+    if (error.contains('expired') || error.contains('صلاحية')) {
+      return context.tr('Code has expired', 'الكود منتهي الصلاحية');
+    }
+    if (error.contains('limit') || error.contains('استنفاد')) {
+      return context.tr(
+        'Code usage limit has been reached',
+        'تم الوصول للحد الأقصى للاستخدام',
+      );
+    }
+    return context.tr('Invalid promo code', 'الكود غير صحيح');
   }
 }

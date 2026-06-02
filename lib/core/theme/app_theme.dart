@@ -8,7 +8,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       primaryColor: AppColors.primary,
-      scaffoldBackgroundColor: AppColors.background,
+      scaffoldBackgroundColor: Colors.transparent,
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.secondary,
@@ -32,8 +32,10 @@ class AppTheme {
         ),
       ),
       textTheme: const TextTheme(
-        displayLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-        titleLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        displayLarge: TextStyle(
+            color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        titleLarge: TextStyle(
+            color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         bodyLarge: TextStyle(color: AppColors.textPrimary),
         bodyMedium: TextStyle(color: AppColors.textSecondary),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/config/supabase_config.dart';
+import '../../../../core/widgets/antigravity_loader.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/language_cubit.dart';
 import '../../domain/entities/category_entity.dart';
@@ -23,10 +24,10 @@ class CategoryCard extends StatelessWidget {
     context.watch<LanguageCubit>();
 
     // Debug translation values
-    print("DEBUG UI: Category ${category.id}");
-    print("EN: ${category.nameEn}");
-    print("AR: ${category.nameAr}");
-    print("Is Arabic: ${context.isArabic}");
+    debugPrint("DEBUG UI: Category ${category.id}");
+    debugPrint("EN: ${category.nameEn}");
+    debugPrint("AR: ${category.nameAr}");
+    debugPrint("Is Arabic: ${context.isArabic}");
 
     return GestureDetector(
       onTap: onTap,
@@ -47,21 +48,29 @@ class CategoryCard extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color:
-                          isSelected ? AppColors.primary : Colors.transparent,
-                      width: 2,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.primary.withValues(alpha: 0.18),
+                      width: isSelected ? 2 : 1.2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        color: AppColors.primary.withValues(alpha: 0.08),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
+                        spreadRadius: 0.5,
+                      ),
+                      BoxShadow(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        blurRadius: 0,
+                        offset: const Offset(0, 0),
+                        spreadRadius: -1,
                       ),
                       if (isSelected)
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.15),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
+                          color: AppColors.primary.withValues(alpha: 0.22),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
                         ),
                     ],
                   ),
@@ -85,8 +94,9 @@ class CategoryCard extends StatelessWidget {
                           child: const Center(
                             child: SizedBox(
                               width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: Center(
+                                child: AntigravityLoaderCore(size: 16),
+                              ),
                             ),
                           ),
                         );

@@ -16,8 +16,10 @@ class CheckoutInitial extends CheckoutState {
   // ── Promo Code ────────────────────────────────────────────────────────────
   /// The validated promo code string (null = none applied)
   final String? appliedPromo;
+
   /// Absolute EGP discount amount (0.0 = no discount)
   final double promoDiscount;
+
   /// Arabic error message to display when validation fails
   final String? promoError;
 
@@ -69,15 +71,6 @@ class CheckoutValidatingPromo extends CheckoutState {}
 class CheckoutProcessing extends CheckoutState {}
 
 class CheckoutSuccess extends CheckoutState {}
-
-class CheckoutPaymentRedirect extends CheckoutState {
-  final String url;
-
-  const CheckoutPaymentRedirect(this.url);
-
-  @override
-  List<Object> get props => [url];
-}
 
 class CheckoutError extends CheckoutState {
   final String message;

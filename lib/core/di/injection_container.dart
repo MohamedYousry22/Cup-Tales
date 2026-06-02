@@ -7,7 +7,6 @@ import '../local_storage/prefs_service.dart';
 import '../services/notification_service.dart';
 import '../localization/language_cubit.dart';
 import '../services/auth_service.dart';
-import '../services/paymob_service.dart';
 import '../services/order_service.dart';
 import '../services/branch_service.dart';
 import '../services/promo_code_service.dart';
@@ -41,7 +40,6 @@ void registerSync() {
   sl.registerLazySingleton(() => HiveService());
   sl.registerLazySingleton(() => NotificationService());
   sl.registerLazySingleton(() => AuthService());
-  sl.registerLazySingleton(() => PaymobService());
   sl.registerLazySingleton(() => OrderService());
   sl.registerLazySingleton(() => ProfileService());
   sl.registerLazySingleton(() => BranchService());
@@ -55,10 +53,6 @@ void registerSync() {
   sl.registerFactoryParam<CheckoutCubit, CartCubit, void>(
     (cartCubit, _) => CheckoutCubit(
       cartCubit,
-      sl<PaymobService>(),
-      sl<AuthService>(),
-      sl<ProfileService>(),
-      sl<OrderService>(),
       sl<BranchService>(),
       sl<PromoCodeService>(),
     ),

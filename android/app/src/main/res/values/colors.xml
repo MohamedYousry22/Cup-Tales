@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Adaptive launcher icon background (required by mipmap-anydpi-v26/ic_launcher.xml) -->
-    <color name="ic_launcher_background">#00000000</color>
+    <color name="ic_launcher_background">#2D3194</color>
     <!-- Cup Tales primary brand blue — used for the launch window background -->
     <color name="brand_purple">#2D3194</color>
 </resources>

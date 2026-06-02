@@ -10,7 +10,7 @@ class BranchesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(
           context.tr('Our Branches', 'فروعنا'),
@@ -20,7 +20,8 @@ class BranchesPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.primary),
         centerTitle: true,
@@ -102,7 +103,7 @@ class BranchCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -125,13 +126,24 @@ class BranchCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.08),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      child: const Icon(
-                        Icons.storefront_rounded,
-                        color: AppColors.primary,
-                        size: 28,
+                      child: Image.asset(
+                        'assets/images/logo/logo.png',
+                        width: 32,
+                        height: 32,
+                        fit: BoxFit.contain,
                       ),
                     ),
                     const SizedBox(width: 16),

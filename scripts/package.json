@@ -1,0 +1,18 @@
+{
+  "name": "cup-tales-scripts",
+  "version": "1.0.0",
+  "description": "Standalone data migration scripts for Cup Tales",
+  "scripts": {
+    "migrate": "ts-node migrate_orders_items.ts",
+    "migrate:dry": "cross-env DRY_RUN=true ts-node migrate_orders_items.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "cross-env": "^7.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

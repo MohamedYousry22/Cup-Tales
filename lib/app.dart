@@ -12,6 +12,7 @@ import 'features/cart/presentation/cubit/cart_cubit.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/auth/presentation/pages/auth_gate.dart';
 import 'features/orders/presentation/cubit/orders_cubit.dart';
+import 'core/widgets/app_background.dart';
 import 'core/di/injection_container.dart' as di;
 
 // Cached theme — never rebuilt, computed once
@@ -31,7 +32,7 @@ class _CupTalesAppState extends State<CupTalesApp> {
   late final CartCubit _cartCubit = di.sl<CartCubit>();
   late final OrdersCubit _ordersCubit = di.sl<OrdersCubit>();
 
-  Locale _locale = const Locale('en');
+  Locale _locale = const Locale('ar');
 
   @override
   void initState() {
@@ -86,6 +87,10 @@ class _CupTalesAppState extends State<CupTalesApp> {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
+        builder: (context, child) {
+          return AppBackground(child: child ?? const SizedBox.shrink());
+        },
+        navigatorObservers: [RouteTracker()],
         supportedLocales: const [Locale('en', ''), Locale('ar', '')],
         onGenerateRoute: AppRouter.generateRoute,
         initialRoute: AppRouter.splash,

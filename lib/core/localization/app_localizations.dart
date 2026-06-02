@@ -29,7 +29,7 @@ class AppLocalizations {
   String get navProfile => isAr ? 'حسابي' : 'Profile';
 
   // ─── Home / Body ─────────────────────────────────────
-  String get offers => isAr ? 'العروض' : 'Offers';
+  String get offers => isAr ? 'الأبرز' : 'Highlights';
 
   // ─── Auth ─────────────────────────────────────────────
   String get login => isAr ? 'تسجيل الدخول' : 'Login';
@@ -77,26 +77,20 @@ class AppLocalizations {
       isAr ? 'اختر طريقة الدفع' : 'Select Payment Method';
   String get cashier =>
       isAr ? 'الكاشير (الدفع بالفرع)' : 'Cashier (Pay at Counter)';
-  String get visa => isAr ? 'فيزا / ماستركارد' : 'Visa / Mastercard';
   String get confirmPayment => isAr ? 'تأكيد الدفع' : 'Confirm Payment';
-  String get paymentSuccess => isAr ? 'تم الدفع بنجاح' : 'Payment Successful';
+  String get paymentSuccess =>
+      isAr ? 'يرجى التوجه الى الكاشير للدفع' : 'Please proceed to the cashier';
   String get paymentSuccessMsg => isAr
-      ? 'تم استلام طلبك وتأكيد الدفع بنجاح.'
-      : 'Your order has been received and payment confirmed.';
+      ? 'تم استلام طلبك ويتم تجهيزه خصيصًا لك.'
+      : 'Your order has been received and is being prepared especially for you.';
   String get backToHome => isAr ? 'العودة للرئيسية' : 'Back to Home';
-  String get mobileWallet => isAr ? 'المحفظة الإلكترونية' : 'Mobile Wallet';
   String get paymentInfoCash => isAr
       ? 'سيتم الدفع نقداً عند استلام الطلب من الفرع (استلام من الفرع).'
       : 'You will pay in cash upon receiving your order at the branch (Pick-up).';
-  String get paymentInfoVisa => isAr
-      ? 'الدفع عبر البطاقات البنكية للاستلام من الفرع.'
-      : 'Pay via Credit/Debit Cards for In-Store Pick-up.';
-  String get paymentInfoWallet => isAr
-      ? 'الدفع عبر محافظ الهاتف للاستلام من الفرع.'
-      : 'Pay via Mobile Wallets for In-Store Pick-up.';
-  
+
   String get pickupFromBranch => isAr ? 'استلام من الفرع' : 'In-Store Pick-up';
-  String get pickupFromBranchSubtitle => isAr ? 'مجانًا - فرع مدينة نصر' : 'Free - Nasr City Branch';
+  String get pickupFromBranchSubtitle =>
+      isAr ? 'مجانًا - فرع مدينة نصر' : 'Free - Nasr City Branch';
 
   // ─── Profile ──────────────────────────────────────────
   String get cupTalesProfile => isAr ? 'الملف الشخصي' : 'Cup Tales Profile';
@@ -117,8 +111,10 @@ class AppLocalizations {
       ? 'تنبيهات غير مفعلة (تجريبي)'
       : 'Notifications not implemented yet (Demo)';
 
-  String get alertPreferences => isAr ? 'تفضيلات التنبيهات' : 'Alert Preferences';
-  String get pushNotifications => isAr ? 'إشعارات الهاتف' : 'Push Notifications';
+  String get alertPreferences =>
+      isAr ? 'تفضيلات التنبيهات' : 'Alert Preferences';
+  String get pushNotifications =>
+      isAr ? 'إشعارات الهاتف' : 'Push Notifications';
   String get stayUpdatedOrders =>
       isAr ? 'ابق على اطلاع بحالة طلباتك' : 'Stay updated on your orders';
   String get emailOffers => isAr ? 'عروض البريد الإلكتروني' : 'Email Offers';

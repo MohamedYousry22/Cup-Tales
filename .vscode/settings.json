@@ -1,3 +1,14 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    // Prevent VS Code's Red Hat Java extension from running a competing
+    // Gradle sync on the Android folder (causes the "init.gradle not found"
+    // and "different roots: google_sign_in_android" IDE errors).
+    "java.import.gradle.enabled": false,
+    // Exclude Android build artefacts from the file watcher so the
+    // Java extension doesn't pick up resolved pub plugin paths.
+    "files.watcherExclude": {
+        "**/android/.gradle/**": true,
+        "**/android/build/**": true,
+        "**/build/**": true
+    }
 }

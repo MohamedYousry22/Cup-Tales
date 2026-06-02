@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/branch.dart';
 import '../local_storage/hive_service.dart';
 import '../di/injection_container.dart' as di;
+import 'package:flutter/foundation.dart';
 
 class BranchService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -23,7 +24,7 @@ class BranchService {
         _cacheBranches(branches);
       }
     } catch (e) {
-      print('DEBUG: Error fetching branches: $e');
+      debugPrint('DEBUG: Error fetching branches: $e');
       _loadFromCache();
     }
   }
@@ -39,7 +40,7 @@ class BranchService {
       appBranches = cached
           .map((e) => Branch.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList();
-      print('DEBUG: Loaded ${appBranches.length} branches from cache');
+      debugPrint('DEBUG: Loaded ${appBranches.length} branches from cache');
     }
   }
   

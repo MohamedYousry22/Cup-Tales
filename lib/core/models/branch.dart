@@ -20,13 +20,14 @@ class Branch extends Equatable {
   });
 
   factory Branch.fromMap(Map<String, dynamic> map) {
-    final String name = map['name'] as String? ?? '';
+    final String nameEn = map['name'] as String? ?? '';
+    final String nameAr = map['name_ar'] as String? ?? nameEn;
     return Branch(
       id: map['id'] as String? ?? '',
-      nameEn: name,
-      nameAr: name,
-      areaEn: '',
-      areaAr: '',
+      nameEn: nameEn,
+      nameAr: nameAr,
+      areaEn: map['area_en'] as String? ?? '',
+      areaAr: map['area_ar'] as String? ?? '',
       location: map['location'] as String? ?? map['map_url'] as String? ?? '',
       active: map['active'] as bool? ?? true,
     );
@@ -42,7 +43,8 @@ class Branch extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, nameEn, nameAr, areaEn, areaAr, location, active];
+  List<Object?> get props =>
+      [id, nameEn, nameAr, areaEn, areaAr, location, active];
 }
 
 List<Branch> appBranches = [

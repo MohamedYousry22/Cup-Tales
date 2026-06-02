@@ -1,4 +1,5 @@
 import '../../domain/entities/category_entity.dart';
+import 'package:flutter/foundation.dart';
 
 class CategoryModel extends CategoryEntity {
   const CategoryModel({
@@ -17,7 +18,7 @@ class CategoryModel extends CategoryEntity {
       image: json['image'] as String? ?? '',
       branchId: json['branch_id']?.toString(),
     );
-    print(
+    debugPrint(
         'DEBUG: CategoryModel created: id=${model.id}, en=${model.nameEn}, ar=${model.nameAr}');
     return model;
   }

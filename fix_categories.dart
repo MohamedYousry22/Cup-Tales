@@ -1,5 +1,6 @@
+// ignore_for_file: avoid_print
 import 'dart:io';
-import 'package:supabase/supabase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   // Production tokens extracted from lib/core/config/supabase_config.dart

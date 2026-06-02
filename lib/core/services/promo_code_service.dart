@@ -8,7 +8,7 @@ abstract class PromoResult {
 
 class PromoValid extends PromoResult {
   final double discountAmount; // absolute EGP value to subtract
-  final String code;           // the validated code string
+  final String code; // the validated code string
   const PromoValid({required this.discountAmount, required this.code});
 }
 
@@ -28,66 +28,58 @@ class PromoCodeService {
   Future<PromoResult> validate(String code, double subtotal) async {
     try {
       final cleanCode = code.trim().toUpperCase();
-      print('DEBUG: Validating code: $cleanCode');
 
-      final data = await _client
+      final response = await _client
           .from('promo_codes')
           .select()
           .eq('code', cleanCode)
           .eq('active', true)
           .maybeSingle();
 
-      print('DEBUG: Response: $data');
-
-      if (data == null) {
-        return const PromoInvalid('invalid');
+      if (response == null) {
+        return const PromoInvalid('الكود غير صحيح');
       }
 
-      // ── Check expiry_date ─────────────────────────────────────────────────
-      final String? expiryRaw = data['expiry_date'] as String?;
+      // ── Check expires_at ─────────────────────────────────────────────────
+      final String? expiryRaw = response['expires_at'] as String?;
       if (expiryRaw != null) {
-        final expiry = DateTime.tryParse(expiryRaw);
-        if (expiry != null && DateTime.now().toUtc().isAfter(expiry.toUtc())) {
-          return const PromoInvalid('expired');
+        final expiry = DateTime.parse(expiryRaw);
+        if (expiry.isBefore(DateTime.now())) {
+          return const PromoInvalid('انتهت صلاحية الكود');
         }
       }
 
-      // ── Check usage_limit ─────────────────────────────────────────────────
-      final int usedCount = (data['used_count'] as num? ?? 0).toInt();
-      final int usageLimit = (data['usage_limit'] as num? ?? 0).toInt();
-      if (usageLimit > 0 && usedCount >= usageLimit) {
-        return const PromoInvalid('limit');
+      // ── Check max_uses ───────────────────────────────────────────────────
+      if (response['max_uses'] != null) {
+        final int usedCount = (response['used_count'] as num? ?? 0).toInt();
+        final int maxUses = (response['max_uses'] as num).toInt();
+        if (usedCount >= maxUses) {
+          return const PromoInvalid('تم استنفاد الكود');
+        }
       }
 
       // ── Parse discount ────────────────────────────────────────────────────
-      final dynamic rawDiscount = data['discount'];
-      double discountAmount = 0.0;
-
-      if (rawDiscount is String) {
-        final trimmed = rawDiscount.trim();
-        if (trimmed.endsWith('%')) {
-          final percent = double.tryParse(trimmed.replaceAll('%', '')) ?? 0.0;
-          discountAmount = subtotal * (percent / 100);
-        } else {
-          discountAmount = double.tryParse(trimmed) ?? 0.0;
-        }
-      } else if (rawDiscount is num) {
-        discountAmount = rawDiscount.toDouble();
-      }
-
-      if (discountAmount <= 0) {
-        return const PromoInvalid('invalid');
+      final int discount = (response['discount'] as num).toInt();
+      final String discountType =
+          response['discount_type']?.toString() ?? 'percent';
+      double discountAmount;
+      if (discountType == 'fixed') {
+        discountAmount = discount.toDouble();
+      } else {
+        discountAmount = subtotal * discount / 100;
       }
 
       discountAmount = discountAmount.clamp(0.0, subtotal);
 
+      await _client.from('promo_codes').update({
+        'used_count': (response['used_count'] as num? ?? 0).toInt() + 1,
+      }).eq('code', cleanCode);
+
       return PromoValid(
         discountAmount: discountAmount,
-        code: (data['code'] as String? ?? cleanCode),
+        code: response['code'] as String? ?? cleanCode,
       );
-    } catch (e, stack) {
-      print('DEBUG: Query FAILED with error: $e');
-      print('DEBUG: Stack trace: $stack');
+    } catch (_) {
       return const PromoInvalid('error');
     }
   }
@@ -97,20 +89,20 @@ class PromoCodeService {
   /// so they never block order confirmation.
   Future<void> incrementUsage(String code) async {
     try {
-      // Fetch current count first, then update
-      final data = await _client
+      final cleanCode = code.trim().toUpperCase();
+      final response = await _client
           .from('promo_codes')
-          .select('id, used_count')
-          .ilike('code', code.trim())
+          .select('used_count')
+          .eq('code', cleanCode)
+          .eq('active', true)
           .maybeSingle();
 
-      if (data == null) return;
+      if (response == null) return;
 
-      final int currentCount = (data['used_count'] as num? ?? 0).toInt();
-      await _client
-          .from('promo_codes')
-          .update({'used_count': currentCount + 1})
-          .eq('id', data['id'] as Object);
+      final int currentCount = (response['used_count'] as num? ?? 0).toInt();
+      await _client.from('promo_codes').update({
+        'used_count': currentCount + 1,
+      }).eq('code', cleanCode);
     } catch (_) {
       // Non-critical — don't rethrow
     }

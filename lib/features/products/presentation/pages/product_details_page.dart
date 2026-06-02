@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/product_entity.dart';
@@ -7,6 +8,114 @@ import '../../../../features/cart/presentation/cubit/cart_state.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/language_cubit.dart';
+
+// ── Data models ──────────────────────────────────────────────────────────────
+
+class _OptionChoice {
+  final String id;
+  final String nameAr;
+  final String nameEn;
+  final double extraPrice;
+  final int sortOrder;
+
+  const _OptionChoice({
+    required this.id,
+    required this.nameAr,
+    required this.nameEn,
+    required this.extraPrice,
+    required this.sortOrder,
+  });
+
+  factory _OptionChoice.fromJson(Map<String, dynamic> json) => _OptionChoice(
+        id: json['id'].toString(),
+        nameAr: json['name_ar']?.toString() ?? '',
+        nameEn: json['name_en']?.toString() ?? '',
+        extraPrice: (json['extra_price'] as num? ?? 0).toDouble(),
+        sortOrder: (json['sort_order'] as num? ?? 0).toInt(),
+      );
+
+  String displayName(bool isAr) {
+    if (isAr && nameAr.trim().isNotEmpty) return nameAr.trim();
+    if (nameEn.trim().isNotEmpty) return nameEn.trim();
+    return nameAr.trim();
+  }
+}
+
+class _OptionGroup {
+  final String id;
+  final String nameAr;
+  final String nameEn;
+  final bool multiSelect;
+  final bool required;
+  final int sortOrder;
+  final List<_OptionChoice> choices;
+
+  const _OptionGroup({
+    required this.id,
+    required this.nameAr,
+    required this.nameEn,
+    required this.multiSelect,
+    required this.required,
+    required this.sortOrder,
+    required this.choices,
+  });
+
+  factory _OptionGroup.fromJson(Map<String, dynamic> json) {
+    final rawChoices = json['category_option_choices'] as List<dynamic>? ?? [];
+    final choices = rawChoices
+        .map((c) => _OptionChoice.fromJson(Map<String, dynamic>.from(c as Map)))
+        .toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
+    return _OptionGroup(
+      id: json['id'].toString(),
+      nameAr: json['name_ar']?.toString() ?? '',
+      nameEn: json['name_en']?.toString() ?? '',
+      multiSelect: json['multi_select'] as bool? ?? false,
+      required: json['required'] as bool? ?? false,
+      sortOrder: (json['sort_order'] as num? ?? 0).toInt(),
+      choices: choices,
+    );
+  }
+
+  String displayName(bool isAr) {
+    if (isAr && nameAr.trim().isNotEmpty) return nameAr.trim();
+    if (nameEn.trim().isNotEmpty) return nameEn.trim();
+    return nameAr.trim();
+  }
+}
+
+class _Addon {
+  final String id;
+  final String nameAr;
+  final String nameEn;
+  final double price;
+  final int sortOrder;
+
+  const _Addon({
+    required this.id,
+    required this.nameAr,
+    required this.nameEn,
+    required this.price,
+    required this.sortOrder,
+  });
+
+  factory _Addon.fromJson(Map<String, dynamic> json) => _Addon(
+        id: json['id'].toString(),
+        nameAr: json['name_ar']?.toString() ?? '',
+        nameEn: json['name_en']?.toString() ?? '',
+        price: (json['price'] as num? ?? 0).toDouble(),
+        sortOrder: (json['sort_order'] as num? ?? 0).toInt(),
+      );
+
+  String displayName(bool isAr) {
+    if (isAr && nameAr.trim().isNotEmpty) return nameAr.trim();
+    if (nameEn.trim().isNotEmpty) return nameEn.trim();
+    return nameAr.trim();
+  }
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
 
 class ProductDetailsPage extends StatefulWidget {
   final ProductEntity product;
@@ -18,176 +127,542 @@ class ProductDetailsPage extends StatefulWidget {
 }
 
 class _ProductDetailsPageState extends State<ProductDetailsPage> {
-  String? _selectedSize;
+  // ── Quantity ──────────────────────────────────────────────────────────────
   int _quantity = 1;
-  bool? _isIceCreamCategory;
 
-  final Map<String, double> _availableSizes = {};
+  // ── Option groups + choices ───────────────────────────────────────────────
+  bool _isLoadingCustomization = false;
+  List<_OptionGroup> _optionGroups = const [];
+
+  /// Single-select state: groupId → chosen choiceId
+  final Map<String, String> _radioSelections = {};
+
+  /// Multi-select state: groupId → Set of chosen choiceIds
+  final Map<String, Set<String>> _checkboxSelections = {};
+
+  /// Price per choice from products.option_prices jsonb: choiceId → price
+  Map<String, double> _optionPrices = const {};
+
+  // ── Add-ons ───────────────────────────────────────────────────────────────
+  List<_Addon> _addons = const [];
+  final Set<String> _selectedAddonIds = {};
+
+  // ─────────────────────────────────────────────────────────────────────────
 
   @override
   void initState() {
     super.initState();
-    // Dynamically detect which sizes have prices mapped in Supabase
-    if (widget.product.priceS != null) {
-      _availableSizes['S'] = widget.product.priceS!;
-    }
-    if (widget.product.priceM != null) {
-      _availableSizes['M'] = widget.product.priceM!;
-    }
-    if (widget.product.priceL != null) {
-      _availableSizes['L'] = widget.product.priceL!;
-    }
-
-    // Auto-select the first available size (Defaults to M if exists)
-    if (_availableSizes.containsKey('M')) {
-      _selectedSize = 'M';
-    } else if (_availableSizes.isNotEmpty) {
-      _selectedSize = _availableSizes.keys.first;
-    }
-    _checkCategory();
+    _loadCustomization();
   }
 
-  Future<void> _checkCategory() async {
+  // ── Supabase data fetching ────────────────────────────────────────────────
+
+  Future<void> _loadCustomization() async {
+    setState(() => _isLoadingCustomization = true);
     try {
       final supabase = Supabase.instance.client;
-      final response = await supabase
-          .from('categories')
-          .select('name, name_ar')
-          .eq('id', widget.product.categoryId)
-          .single();
-      final String name = response['name']?.toString().toLowerCase() ?? '';
-      final String nameAr = response['name_ar']?.toString().toLowerCase() ?? '';
+      final catId = widget.product.categoryId;
+
+      // Fetch option groups with nested choices
+      final groupsRaw = await supabase
+          .from('category_option_groups')
+          .select('*, category_option_choices(*)')
+          .eq('category_id', catId)
+          .order('sort_order');
+
+      final groups = (groupsRaw as List<dynamic>)
+          .map((r) => _OptionGroup.fromJson(Map<String, dynamic>.from(r as Map)))
+          .toList()
+        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
+      // Fetch option_prices from this product row: Map<choiceId, price>
+      Map<String, double> optionPrices = const {};
+      try {
+        final productRow = await supabase
+            .from('products')
+            .select('option_prices')
+            .eq('id', widget.product.id)
+            .maybeSingle();
+        var raw = productRow?['option_prices'];
+        if (raw is String) {
+          raw = jsonDecode(raw);
+        }
+        if (raw is Map) {
+          optionPrices = raw.map((k, v) =>
+              MapEntry(k.toString(), (v as num? ?? 0).toDouble()));
+        }
+      } catch (_) {}
+
+      // Fetch active add-ons
+      final addonsRaw = await supabase
+          .from('category_addons')
+          .select()
+          .eq('category_id', catId)
+          .eq('active', true)
+          .order('sort_order');
+
+      final addons = (addonsRaw as List<dynamic>)
+          .map((r) => _Addon.fromJson(Map<String, dynamic>.from(r as Map)))
+          .toList()
+        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
+      if (!mounted) return;
+      setState(() {
+        _optionGroups = groups;
+        _optionPrices = optionPrices;
+        _addons = addons;
+
+        // Auto-select the first choice for required single-select groups
+        for (final group in groups) {
+          if (!group.multiSelect && group.required && group.choices.isNotEmpty) {
+            _radioSelections[group.id] = group.choices.first.id;
+          }
+        }
+        _isLoadingCustomization = false;
+      });
+    } catch (_) {
       if (mounted) {
         setState(() {
-          _isIceCreamCategory = name.contains('sundae') ||
-              name.contains('ice cream') ||
-              nameAr.contains('صنداي') ||
-              nameAr.contains('ايس كريم') ||
-              nameAr.contains('آيس كريم');
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isIceCreamCategory = false;
+          _optionGroups = const [];
+          _addons = const [];
+          _isLoadingCustomization = false;
         });
       }
     }
   }
 
-  bool get _isSundae {
-    if (_isIceCreamCategory != null) return _isIceCreamCategory!;
-    final n = widget.product.name.toLowerCase();
-    final nAr = widget.product.nameAr?.toLowerCase() ?? '';
-    return n.contains('sundae') ||
-        nAr.contains('صنداي') ||
-        nAr.contains('آيس كريم');
+
+
+  // ── Pricing calculation ───────────────────────────────────────────────────
+
+  /// Price for the currently selected single-select choices.
+  /// For multi-select groups, uses the first selected choice's price.
+  /// Falls back to product.basePrice when no option price is set.
+  double get _basePrice {
+    // Collect prices from all single-select selections
+    double choicePrice = 0;
+    bool hasPriceSelection = false;
+    for (final group in _optionGroups) {
+      if (!group.multiSelect) {
+        final choiceId = _radioSelections[group.id];
+        if (choiceId != null) {
+          final p = _optionPrices[choiceId] ?? 0;
+          if (p > 0) {
+            choicePrice += p;
+            hasPriceSelection = true;
+          }
+        }
+      }
+    }
+    if (hasPriceSelection) return choicePrice;
+    return widget.product.basePrice;
   }
 
-  double get _totalPrice {
-    if (_selectedSize == null) return 0.0;
-    return (_availableSizes[_selectedSize] ?? 0.0) * _quantity;
+  /// Sum of selected addon prices
+  double get _addonsExtraPrice {
+    return _addons
+        .where((a) => _selectedAddonIds.contains(a.id))
+        .fold(0.0, (sum, a) => sum + a.price);
   }
+
+  // Per spec: option group choices are configuration only — price = base + addons only.
+  double get _unitPrice => _basePrice + _addonsExtraPrice;
+  double get _totalPrice => _unitPrice * _quantity;
+
+  // ── Validation ────────────────────────────────────────────────────────────
+
+  /// Returns true if all required option groups have a selection
+  bool get _canAddToCart {
+    for (final group in _optionGroups) {
+      if (!group.required) continue;
+      if (!group.multiSelect) {
+        if (!_radioSelections.containsKey(group.id)) return false;
+      } else {
+        if ((_checkboxSelections[group.id]?.isEmpty ?? true)) return false;
+      }
+    }
+    return true;
+  }
+
+  // ── Build selectedOptions map for cart ────────────────────────────────────
+
+  /// Builds a String-to-String map of groupName → choiceName for cart storage.
+  Map<String, String> _buildSelectedOptionsMap(bool isAr) {
+    final map = <String, String>{};
+    for (final group in _optionGroups) {
+      if (!group.multiSelect) {
+        final choiceId = _radioSelections[group.id];
+        if (choiceId != null) {
+          final choice = group.choices.where((c) => c.id == choiceId).firstOrNull;
+          if (choice != null) {
+            map[group.displayName(isAr)] = choice.displayName(isAr);
+          }
+        }
+      } else {
+        final selected = _checkboxSelections[group.id] ?? {};
+        final names = group.choices
+            .where((c) => selected.contains(c.id))
+            .map((c) => c.displayName(isAr))
+            .join(', ');
+        if (names.isNotEmpty) {
+          map[group.displayName(isAr)] = names;
+        }
+      }
+    }
+    return map;
+  }
+
+  /// Builds List<Map> for selected addons
+  List<Map<String, dynamic>> _buildSelectedAddonsList() {
+    return _addons
+        .where((a) => _selectedAddonIds.contains(a.id))
+        .map((a) => {
+              'id': a.id,
+              'name': a.nameAr.isNotEmpty ? a.nameAr : a.nameEn,
+              'name_en': a.nameEn,
+              'price': a.price,
+            })
+        .toList();
+  }
+
+  // ── Helper ────────────────────────────────────────────────────────────────
 
   String _getFallbackDescription(BuildContext context) {
     if (widget.product.description.isNotEmpty) {
       return widget.product.description;
     }
-
     final name = widget.product.name;
     final nameAr = widget.product.nameAr ?? name;
+    return context.tr(
+      'Enjoy the perfect and refreshing taste of $name. Crafted with the finest ingredients to bring you a unique flavor that brightens your day.',
+      'استمتع بالمذاق الرائع والمنعش لـ $nameAr. محضر بأجود المكونات ليقدم لك نكهة فريدة ومميزة تضيء يومك.',
+    );
+  }
 
-    if (_isSundae) {
-      return context.tr(
-        'Treat yourself to $name. Our premium ice cream is crafted for the ultimate creamy and rich experience. Choose between a crispy biscuit cone or a classic sundae cup to satisfy your sweet cravings!',
-        'دلل نفسك مع $nameAr. آيس كريم فاخر ومحضر بعناية ليمنحك تجربة غنية ولذيذة. اختر بين بسكويت مقرمش أو كوب صنداي كلاسيكي واستمتع بأحلى الأوقات!',
-      );
+  void _addToCartAndPop(BuildContext ctx, {required bool navigate}) {
+    if (!_canAddToCart) {
+      // Show validation error for missing required group
+      for (final group in _optionGroups) {
+        if (!group.required) continue;
+        final isAr = ctx.loc.isAr;
+        bool missing = false;
+        if (!group.multiSelect && !_radioSelections.containsKey(group.id)) {
+          missing = true;
+        } else if (group.multiSelect &&
+            (_checkboxSelections[group.id]?.isEmpty ?? true)) {
+          missing = true;
+        }
+        if (missing) {
+          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+            content: Text(
+              isAr
+                  ? 'يرجى اختيار ${group.displayName(true)}'
+                  : 'Please select ${group.displayName(false)}',
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+          ));
+          return;
+        }
+      }
+      return;
+    }
+
+    final isAr = ctx.loc.isAr;
+    ctx.read<CartCubit>().addToCart(
+          productId: widget.product.id,
+          productName: widget.product.name,
+          basePrice: widget.product.basePrice,
+          price: _unitPrice,
+          image: widget.product.imageUrl,
+          quantity: _quantity,
+          selectedSize: null,
+          selectedOptions: _buildSelectedOptionsMap(isAr),
+          selectedAddons: _buildSelectedAddonsList(),
+        );
+
+    ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+      content: Text(ctx.loc.addedToCart),
+      backgroundColor: Colors.green,
+      behavior: SnackBarBehavior.floating,
+    ));
+
+    if (navigate) {
+      Navigator.pushNamed(ctx, '/cart');
     } else {
-      return context.tr(
-        'Enjoy the perfect and refreshing taste of $name. Crafted with the finest ingredients to bring you a unique flavor that brightens your day.',
-        'استمتع بالمذاق الرائع والمنعش لـ $nameAr. محضر بأجود المكونات ليقدم لك نكهة فريدة ومميزة تضيء يومك.',
-      );
+      Navigator.pop(ctx);
     }
   }
 
-  Widget _buildIceCreamSelector() {
-    return Row(
-      children: _availableSizes.entries.map((entry) {
-        final sizeCode = entry.key; // 'S' or 'M'
-        final isSelected = _selectedSize == sizeCode;
+  // ── Option groups rendered as pill/chip buttons ────────────────────────────
 
-        String title = '';
-        if (sizeCode == 'S') {
-          title = context.tr('Biscuit', 'بسكويت');
-        } else if (sizeCode == 'M') {
-          title = context.tr('Sundae Cup', 'كوب صنداي');
-        } else {
-          title = sizeCode;
-        }
+  Widget _buildOptionGroupsSection(bool isAr) {
+    if (_isLoadingCustomization) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
+    if (_optionGroups.isEmpty) return const SizedBox.shrink();
 
-        return Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _selectedSize = sizeCode),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final group in _optionGroups) ..._buildGroupPills(group, isAr),
+      ],
+    );
+  }
+
+  List<Widget> _buildGroupPills(_OptionGroup group, bool isAr) {
+    return [
+      // ── Group title row with required badge ────────────────────────────────
+      Row(
+        children: [
+          Text(
+            group.displayName(isAr),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (group.required)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                isAr ? 'مطلوب' : 'Required',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
+      ),
+      const SizedBox(height: 12),
+
+      // ── Pill buttons row ────────────────────────────────────────────────
+      Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: group.choices.map((choice) {
+          final bool isSelected = group.multiSelect
+              ? (_checkboxSelections[group.id] ?? {}).contains(choice.id)
+              : _radioSelections[group.id] == choice.id;
+
+          final String label = choice.displayName(isAr);
+
+          return GestureDetector(
+            onTap: () => setState(() {
+              if (!group.multiSelect) {
+                _radioSelections[group.id] = choice.id;
+              } else {
+                final s = Set<String>.from(
+                    _checkboxSelections[group.id] ?? {});
+                if (s.contains(choice.id)) {
+                  s.remove(choice.id);
+                } else {
+                  s.add(choice.id);
+                }
+                _checkboxSelections[group.id] = s;
+              }
+            }),
             child: Container(
-              margin: EdgeInsets.only(
-                  right: sizeCode != _availableSizes.keys.last ? 12.0 : 0),
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primary : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : Colors.grey.shade300,
+                  color: isSelected
+                      ? AppColors.primary
+                      : Colors.grey.shade300,
                   width: 2,
                 ),
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.2),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         )
                       ]
                     : [],
               ),
-              child: Column(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    sizeCode == 'S'
-                        ? Icons.cookie_outlined
-                        : Icons.icecream_outlined,
-                    color: isSelected ? Colors.white : AppColors.primary,
-                    size: 32,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : AppColors.textPrimary,
+                  if (isSelected) ...[
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: Colors.white,
+                      size: 16,
                     ),
-                  ),
-                  const SizedBox(height: 4),
+                    const SizedBox(width: 6),
+                  ],
                   Text(
-                    '${entry.value} ${context.loc.egp}',
+                    label,
                     style: TextStyle(
-                      fontSize: 14,
-                      color:
-                          isSelected ? Colors.white70 : AppColors.textSecondary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected
+                          ? Colors.white
+                          : AppColors.textPrimary,
                     ),
                   ),
                 ],
               ),
             ),
+          );
+        }).toList(),
+      ),
+      const SizedBox(height: 24),
+    ];
+  }
+
+  Widget _buildAddonsSection(bool isAr) {
+    if (_isLoadingCustomization || _addons.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 4),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        );
-      }).toList(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.08),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.add_circle_outline,
+                        color: Colors.orange, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      isAr ? 'إضافات' : 'Add-ons',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        isAr ? 'اختياري' : 'Optional',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ..._addons.map((addon) {
+                final isChecked = _selectedAddonIds.contains(addon.id);
+                return InkWell(
+                  onTap: () => setState(() {
+                    if (isChecked) {
+                      _selectedAddonIds.remove(addon.id);
+                    } else {
+                      _selectedAddonIds.add(addon.id);
+                    }
+                  }),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isChecked
+                          ? Colors.orange.withValues(alpha: 0.05)
+                          : null,
+                    ),
+                    child: Row(
+                      children: [
+                        Checkbox(
+                          value: isChecked,
+                          activeColor: Colors.orange,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4)),
+                          onChanged: (_) => setState(() {
+                            if (isChecked) {
+                              _selectedAddonIds.remove(addon.id);
+                            } else {
+                              _selectedAddonIds.add(addon.id);
+                            }
+                          }),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            addon.displayName(isAr),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: isChecked
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '+${addon.price.toStringAsFixed(2)} ${isAr ? 'ج' : 'EGP'}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.orange,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     context.watch<LanguageCubit>();
+    final isAr = context.loc.isAr;
     final displayName = context.tr(
       widget.product.name,
       widget.product.nameAr ?? widget.product.name,
@@ -195,7 +670,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     final description = _getFallbackDescription(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -231,7 +706,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Hero Image ──
+            // ── Hero Image ──────────────────────────────────────────────────
             Container(
               height: MediaQuery.of(context).size.height * 0.45,
               width: double.infinity,
@@ -243,7 +718,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -274,7 +749,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Title & Price Header ──
+                  // ── Title & Price Header ────────────────────────────────
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -300,7 +775,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Description ──
+                  // ── Description ─────────────────────────────────────────
                   Text(
                     description,
                     style: const TextStyle(
@@ -309,65 +784,17 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                       height: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
 
-                  // ── Size Selector ──
-                  if (_availableSizes.isNotEmpty) ...[
-                    Text(
-                      _isSundae
-                          ? context.tr('Serving Option', 'طريقة التقديم')
-                          : context.loc.size,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (_isSundae)
-                      _buildIceCreamSelector()
-                    else
-                      Row(
-                        children: _availableSizes.entries.map((entry) {
-                          final sizeCode = entry.key;
-                          final isSelected = _selectedSize == sizeCode;
+                  // ── Dynamic Option Groups (pill/chip style) ───────────────────
+                  _buildOptionGroupsSection(isAr),
 
-                          String displaySize = sizeCode;
-                          if (sizeCode == 'S') displaySize = context.loc.small;
-                          if (sizeCode == 'M') displaySize = context.loc.medium;
-                          if (sizeCode == 'L') displaySize = context.loc.large;
+                  // ── Add-ons ─────────────────────────────────────────────
+                  _buildAddonsSection(isAr),
 
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 12.0),
-                            child: ChoiceChip(
-                              label: Text(
-                                displaySize,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : AppColors.textPrimary,
-                                ),
-                              ),
-                              selected: isSelected,
-                              selectedColor: AppColors.primary,
-                              backgroundColor: Colors.white,
-                              onSelected: (selected) {
-                                if (selected) {
-                                  setState(() => _selectedSize = sizeCode);
-                                }
-                              },
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                  ],
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 8),
 
-                  // ── Quantity & Add To Cart ──
+                  // ── Quantity & Add To Cart ──────────────────────────────
                   Row(
                     children: [
                       // Quantity Control
@@ -402,48 +829,51 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                       const SizedBox(width: 16),
                       // Add To Cart Button
                       Expanded(
+                        flex: 1,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 20),
+                            side: const BorderSide(
+                                color: AppColors.primary, width: 2),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: () =>
+                              _addToCartAndPop(context, navigate: false),
+                          child: const Icon(Icons.add_shopping_cart, size: 24),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Buy Now Button
+                      Expanded(
+                        flex: 2,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 20),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
                             elevation: 4,
                           ),
-                          onPressed: _selectedSize == null
-                              ? null
-                              : () {
-                                  context.read<CartCubit>().addToCart(
-                                        productId: widget.product.id,
-                                        productName: widget.product.name,
-                                        price: _availableSizes[_selectedSize] ??
-                                            0.0,
-                                        image: widget.product.imageUrl,
-                                        quantity: _quantity,
-                                      );
-
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(context.loc.addedToCart),
-                                      backgroundColor: Colors.green,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                  Navigator.pop(context);
-                                },
+                          onPressed: () =>
+                              _addToCartAndPop(context, navigate: true),
                           child: Text(
-                            context.loc.addToCart,
+                            context.tr('Buy Now', 'اشتري الآن'),
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                      )
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),

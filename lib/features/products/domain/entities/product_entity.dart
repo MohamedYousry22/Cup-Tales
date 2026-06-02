@@ -11,6 +11,7 @@ class ProductEntity extends Equatable {
   final double? priceM;
   final double? priceL;
   final String? branchId;
+  final Map<String, double> optionPrices;
 
   const ProductEntity({
     required this.id,
@@ -23,10 +24,24 @@ class ProductEntity extends Equatable {
     this.priceM,
     this.priceL,
     this.branchId,
+    this.optionPrices = const {},
   });
 
   // Helper to safely get the "starting" price or base price
-  double get basePrice => priceS ?? priceM ?? priceL ?? 0.0;
+  double get basePrice {
+    if (optionPrices.isNotEmpty) {
+      double minPrice = double.infinity;
+      for (final p in optionPrices.values) {
+        if (p > 0 && p < minPrice) {
+          minPrice = p;
+        }
+      }
+      if (minPrice != double.infinity) {
+        return minPrice.roundToDouble();
+      }
+    }
+    return (priceS ?? priceM ?? priceL ?? 0.0).roundToDouble();
+  }
 
   @override
   List<Object?> get props => [
@@ -40,5 +55,6 @@ class ProductEntity extends Equatable {
         priceM,
         priceL,
         branchId,
+        optionPrices,
       ];
 }

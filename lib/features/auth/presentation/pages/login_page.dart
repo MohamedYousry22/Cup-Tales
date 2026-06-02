@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/auth_cubit.dart';
@@ -7,10 +8,14 @@ import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/language_cubit.dart';
 import '../../../../core/localization/language_state.dart';
 import '../../../../core/localization/app_language.dart';
+import '../../../../core/widgets/antigravity_loader.dart';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const _kPrimary = Color(0xFF2D3194);
+const _kLogoNavy = Color(0xFF17185A);
+const _kLogoBlue = Color(0xFF2D3194);
+const _kLogoViolet = Color(0xFF4E46B4);
 const _kSlate900 = Color(0xFF0F172A);
 const _kSlate800 = Color(0xFF1E293B);
 const _kSlate400 = Color(0xFF94A3B8);
@@ -24,13 +29,27 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  late final AnimationController _backgroundController;
   bool _obscure = true;
 
   @override
+  void initState() {
+    super.initState();
+    _backgroundController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat();
+  }
+
+  @override
   void dispose() {
+    // Safety: ensure global loader is hidden if we leave the page abruptly
+    CustomLoadingOverlay.hide();
+    _backgroundController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -50,6 +69,12 @@ class _LoginPageState extends State<LoginPage> {
       resizeToAvoidBottomInset: true,
       body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
+          if (state is AuthLoading) {
+            CustomLoadingOverlay.show(context);
+          } else {
+            CustomLoadingOverlay.hide();
+          }
+
           if (state is AuthAuthenticated) {
             // Explicit navigation fallback to bypass any reactive lag in AuthGate.
             Navigator.pushReplacementNamed(context, AppRouter.home);
@@ -62,36 +87,16 @@ class _LoginPageState extends State<LoginPage> {
         },
         child: Stack(
           children: [
-            // ── Gradient background (from auth-fixes) ────────────────
             Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFF5A5ECA), // Vibrant highlight
-                      _kPrimary,               // Brand blue (0xFF2D3194)
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // ── Decorative glow blobs ─────────────────────────────────
-            Positioned(
-              top: -96,
-              left: -96,
-              child: _GlowBlob(
-                size: 256,
-                color: Colors.white.withAlpha(13),
-              ),
-            ),
-            Positioned(
-              bottom: -128,
-              right: -128,
-              child: _GlowBlob(
-                size: 384,
-                color: Colors.black.withAlpha(26),
+              child: AnimatedBuilder(
+                animation: _backgroundController,
+                builder: (context, _) {
+                  return CustomPaint(
+                    painter: _AuthBackdropPainter(
+                      progress: _backgroundController.value,
+                    ),
+                  );
+                },
               ),
             ),
 
@@ -579,20 +584,134 @@ class _GoogleLogoPainter extends CustomPainter {
   bool shouldRepaint(_GoogleLogoPainter _) => false;
 }
 
-// ─── Glow Blob ────────────────────────────────────────────────────────────────
+class _AuthBackdropPainter extends CustomPainter {
+  final double progress;
 
-class _GlowBlob extends StatelessWidget {
-  final double size;
-  final Color color;
-  const _GlowBlob({required this.size, required this.color});
+  _AuthBackdropPainter({required this.progress});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final gradientPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF080B2A),
+          _kLogoNavy,
+          _kLogoBlue,
+        ],
+        stops: [0, 0.58, 1],
+      ).createShader(rect);
+    canvas.drawRect(rect, gradientPaint);
+
+    final wavePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.055)
+      ..style = PaintingStyle.fill;
+    final wave = Path();
+    final base = size.height * 0.18;
+    wave.moveTo(0, base);
+    for (double x = 0; x <= size.width; x += 28) {
+      wave.lineTo(
+        x,
+        base +
+            math.sin((x / size.width * math.pi * 2) + progress * math.pi * 2) *
+                18,
+      );
+    }
+    wave
+      ..lineTo(size.width, 0)
+      ..lineTo(0, 0)
+      ..close();
+    canvas.drawPath(wave, wavePaint);
+
+    void glow(Offset center, double radius, Color color, double alpha) {
+      final paint = Paint()
+        ..shader = RadialGradient(
+          colors: [
+            color.withValues(alpha: alpha),
+            color.withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromCircle(center: center, radius: radius));
+      canvas.drawCircle(center, radius, paint);
+    }
+
+    glow(
+      Offset(size.width * (0.18 + 0.04 * math.sin(progress * math.pi * 2)),
+          size.height * 0.22),
+      size.width * 0.42,
+      const Color(0xFF4E6CFF),
+      0.22,
     );
+    glow(
+      Offset(size.width * (0.86 + 0.03 * math.cos(progress * math.pi * 2)),
+          size.height * 0.68),
+      size.width * 0.5,
+      _kLogoViolet,
+      0.22,
+    );
+    glow(
+      Offset(size.width * 0.52, size.height * 0.94),
+      size.width * 0.56,
+      const Color(0xFF05071F),
+      0.4,
+    );
+
+    final beanPositions = const [
+      Offset(0.08, 0.12),
+      Offset(0.24, 0.19),
+      Offset(0.79, 0.13),
+      Offset(0.92, 0.25),
+      Offset(0.14, 0.35),
+      Offset(0.35, 0.31),
+      Offset(0.84, 0.39),
+      Offset(0.06, 0.53),
+      Offset(0.22, 0.61),
+      Offset(0.73, 0.58),
+      Offset(0.94, 0.66),
+      Offset(0.12, 0.78),
+      Offset(0.43, 0.82),
+      Offset(0.64, 0.76),
+      Offset(0.86, 0.88),
+    ];
+
+    for (int i = 0; i < beanPositions.length; i++) {
+      final bean = beanPositions[i];
+      final phase = progress * math.pi * 2 + i * 0.73;
+      final x = size.width * bean.dx + math.sin(phase) * 4;
+      final y = size.height * bean.dy + math.cos(phase * 0.9) * 6;
+      final beanScale = 0.72 + (i % 4) * 0.1;
+      final beanPaint = Paint()
+        ..color =
+            const Color(0xFFD2A06C).withValues(alpha: 0.24 + (i % 3) * 0.04);
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.rotate(-0.9 + i * 0.47 + math.sin(phase) * 0.08);
+      canvas.scale(beanScale);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          const Rect.fromLTWH(-5, -9, 10, 18),
+          const Radius.circular(8),
+        ),
+        beanPaint,
+      );
+      canvas.drawPath(
+        Path()
+          ..moveTo(0, -6)
+          ..cubicTo(-4, -2, 4, 2, 0, 6),
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.28)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2
+          ..strokeCap = StrokeCap.round,
+      );
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _AuthBackdropPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }
 

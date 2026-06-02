@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -92,13 +91,11 @@ class AuthService {
 
   Future<void> signInWithGoogle() async {
     try {
-      if (kDebugMode) print('AuthService: Starting Native Google Sign-In');
+      if (kDebugMode) debugPrint('AuthService: Starting Native Google Sign-In');
 
       // 1. Generate a secure random string (rawNonce)
       final rawNonce = _generateRandomString(16);
 
-      // 2. SHA256 Hashed Nonce for OIDC security
-      final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
 
       // 3. Initialize Google Sign-In
       // ⚠️ CRITICAL FIX: serverClientId MUST be the WEB CLIENT ID
@@ -138,10 +135,10 @@ class AuthService {
         nonce: rawNonce,
       );
 
-      if (kDebugMode) print('AuthService: Native Google Sign-In successful');
+      if (kDebugMode) debugPrint('AuthService: Native Google Sign-In successful');
     } on AuthException catch (e) {
       if (kDebugMode) {
-        print('AuthService: AuthException during Google Sign-In: ${e.message}');
+        debugPrint('AuthService: AuthException during Google Sign-In: ${e.message}');
       }
       throw Exception(_parseAuthError(e.message));
     } catch (e) {

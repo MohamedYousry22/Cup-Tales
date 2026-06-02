@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/widgets/antigravity_loader.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PersonalInfoPage extends StatefulWidget {
@@ -26,22 +28,46 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) return;
 
+    final phone = _phoneController.text.trim();
+    if (phone.length != 11) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'Phone number must be exactly 11 digits',
+              'رقم الهاتف يجب أن يكون 11 رقم بالضبط',
+            ),
+          ),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       await Supabase.instance.client.from('profiles').upsert({
         'id': user.id,
         'email': user.email ?? '',
         'name': _nameController.text.trim(),
-        'phone': _phoneController.text.trim(),
+        'phone': phone,
       });
 
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully'),
+          SnackBar(
+            content: Text(
+              context.tr(
+                'Profile updated successfully',
+                'تم تحديث الملف الشخصي بنجاح',
+              ),
+            ),
             backgroundColor: Colors.green,
           ),
         );
+        Navigator.pop(context, true);
+        return;
       }
     } catch (e) {
       if (mounted) {
@@ -62,9 +88,10 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     final user = Supabase.instance.client.auth.currentUser;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
@@ -88,7 +115,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             .maybeSingle(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: AntigravityLoaderCore(size: 80));
           }
 
           final profile = snapshot.data;
@@ -126,7 +153,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
+                          color: Colors.black.withValues(alpha: 0.02),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -143,6 +170,10 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                           label: context.tr('Phone Number', 'رقم الهاتف'),
                           controller: _phoneController,
                           keyboardType: TextInputType.phone,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(11),
+                          ],
                         ),
                         const SizedBox(height: 20),
                         _buildReadOnlyField(
@@ -163,7 +194,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       ),
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const AntigravityLoaderCore(size: 24)
                         : Text(
                             context.tr('Save Changes', 'حفظ التغييرات'),
                             style: const TextStyle(
@@ -186,6 +217,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     required String label,
     required TextEditingController controller,
     TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,6 +230,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -232,7 +265,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: AppColors.primary.withOpacity(0.5),
+            color: AppColors.primary.withValues(alpha: 0.5),
           ),
         ),
       ],

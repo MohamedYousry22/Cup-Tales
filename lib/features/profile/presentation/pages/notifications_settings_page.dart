@@ -18,9 +18,10 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
@@ -60,7 +61,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                   border: Border.all(color: Colors.grey.shade100),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
+                      color: Colors.black.withValues(alpha: 0.02),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -70,7 +71,8 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                   children: [
                     SwitchListTile(
                       activeColor: AppColors.primary,
-                      activeTrackColor: AppColors.primary.withOpacity(0.5),
+                      activeTrackColor:
+                          AppColors.primary.withValues(alpha: 0.5),
                       title: Text(
                         context.loc.pushNotifications,
                         style: const TextStyle(
@@ -89,7 +91,8 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                     const Divider(height: 1),
                     SwitchListTile(
                       activeColor: AppColors.primary,
-                      activeTrackColor: AppColors.primary.withOpacity(0.5),
+                      activeTrackColor:
+                          AppColors.primary.withValues(alpha: 0.5),
                       title: Text(
                         context.loc.emailOffers,
                         style: const TextStyle(

@@ -7,13 +7,13 @@ class NotificationService {
     // NotificationSettings settings = await _firebaseMessaging.requestPermission();
     
     // if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-    //   print('User granted permission');
+    //   debugPrint('User granted permission');
     // }
 
     // Foreground messages wrapper
     // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    //   print('Got a message whilst in the foreground!');
-    //   print('Message data: ${message.data}');
+    //   debugPrint('Got a message whilst in the foreground!');
+    //   debugPrint('Message data: ${message.data}');
     // });
     
     // Background messages wrapper (need top-level function)

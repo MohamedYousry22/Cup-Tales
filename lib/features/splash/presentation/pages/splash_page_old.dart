@@ -1,4 +1,4 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/splash_cubit.dart';
@@ -253,7 +253,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                         borderRadius: BorderRadius.circular(40),
                         boxShadow: [
                           BoxShadow(
-                            color: _accent.withOpacity(0.50 * _glowAmt.value),
+                            color: _accent.withValues(alpha: 0.50 * _glowAmt.value),
                             blurRadius: 60,
                             spreadRadius: 10,
                           ),
@@ -354,7 +354,7 @@ class _CupPainter extends CustomPainter {
     canvas.drawPath(
         _cachedBodyPath,
         Paint()
-          ..color = Colors.white.withOpacity(0.09)
+          ..color = Colors.white.withValues(alpha: 0.09)
           ..style = PaintingStyle.fill);
 
     // Liquid fill
@@ -383,7 +383,7 @@ class _CupPainter extends CustomPainter {
       canvas.drawPath(
           liqPath,
           Paint()
-            ..color = _primary.withOpacity(0.90)
+            ..color = _primary.withValues(alpha: 0.90)
             ..style = PaintingStyle.fill);
 
       canvas.restore();
@@ -392,7 +392,7 @@ class _CupPainter extends CustomPainter {
     // Progressive outline using pre-cached metrics ΓÇö no computeMetrics() call
     if (reveal > 0) {
       final outlinePaint = Paint()
-        ..color = Colors.white.withOpacity(0.40)
+        ..color = Colors.white.withValues(alpha: 0.40)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0
         ..strokeCap = StrokeCap.round
@@ -435,7 +435,7 @@ class _SteamPainter extends CustomPainter {
       final fade = sin(progress * pi).clamp(0.0, 1.0);
       final alpha = fade * opacity * 0.45;
       if (alpha < 0.01) continue;
-      paint.color = Colors.white.withOpacity(alpha);
+      paint.color = Colors.white.withValues(alpha: alpha);
 
       final startY = center.dy + 8;
       final endY = center.dy - 45 - progress * 55;
@@ -477,7 +477,7 @@ class _BgPainter extends CustomPainter {
           center: Alignment.center,
           radius: 0.85,
           colors: [
-            _accent.withOpacity(0.25 * opacity),
+            _accent.withValues(alpha: 0.25 * opacity),
             Colors.transparent,
           ],
         ).createShader(Rect.fromLTWH(0, 0, size.width, size.height)),
@@ -495,7 +495,7 @@ class _BgPainter extends CustomPainter {
       final dx = sin(t * 2 * pi + phase) * 4;
       final dy = cos(t * 2 * pi + phase) * 6;
       stroke.color =
-          Colors.white.withOpacity((0.12 + rng.nextDouble() * 0.10) * opacity);
+          Colors.white.withValues(alpha: (0.12 + rng.nextDouble() * 0.10) * opacity);
 
       if (i % 2 == 0) {
         final bw = 15.0 + rng.nextDouble() * 12;

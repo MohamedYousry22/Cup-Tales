@@ -15,10 +15,7 @@ import '../../features/profile/presentation/pages/notifications_settings_page.da
 import '../../features/profile/presentation/pages/privacy_policy_page.dart';
 import '../../features/orders/presentation/pages/orders_page.dart';
 import '../../features/profile/presentation/pages/branches_page.dart';
-import '../../features/checkout/presentation/pages/paymob_payment_screen.dart';
 import '../../features/checkout/presentation/pages/payment_failure_page.dart';
-import '../../features/checkout/presentation/cubit/checkout_cubit.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -32,7 +29,6 @@ class AppRouter {
   static const String checkout = '/checkout';
   static const String paymentSuccess = '/payment-success';
   static const String paymentFailure = '/payment-failure';
-  static const String paymobPayment = '/paymob-payment';
   static const String resetPassword = '/reset-password';
   static const String personalInfo = '/personal-info';
   static const String notifications = '/notifications';
@@ -54,8 +50,8 @@ class AppRouter {
 
     switch (settings.name) {
       case splash:
-        debugPrint('[AppRouter] Yielding SplashPage');
-        return MaterialPageRoute(builder: (_) => const SplashPage());
+        debugPrint('[AppRouter] Yielding AnimatedSplashPage');
+        return MaterialPageRoute(builder: (_) => const AnimatedSplashPage());
 
       case onboarding:
         return MaterialPageRoute(builder: (_) => const OnboardingPage());
@@ -70,8 +66,17 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const AuthGate());
 
       case productDetails:
+        if (settings.arguments is! ProductEntity) {
+          debugPrint(
+              '[AppRouter] productDetails arguments is null or invalid. Redirecting to AuthGate.');
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => const AuthGate(),
+          );
+        }
         final product = settings.arguments as ProductEntity;
         return MaterialPageRoute(
+          settings: settings,
           builder: (_) => ProductDetailsPage(product: product),
         );
 
@@ -84,22 +89,12 @@ class AppRouter {
       case paymentSuccess:
         final orderId = settings.arguments as String?;
         return MaterialPageRoute(
+          settings: settings,
           builder: (_) => PaymentSuccessPage(orderId: orderId),
         );
 
       case paymentFailure:
         return MaterialPageRoute(builder: (_) => const PaymentFailurePage());
-
-      case paymobPayment:
-        final args = settings.arguments as Map<String, dynamic>;
-        final url = args['url'] as String;
-        final checkoutCubit = args['cubit'] as CheckoutCubit;
-        return MaterialPageRoute(
-          builder: (_) => BlocProvider.value(
-            value: checkoutCubit,
-            child: PaymobPaymentScreen(url: url),
-          ),
-        );
 
       case resetPassword:
         return MaterialPageRoute(builder: (_) => const ResetPasswordPage());

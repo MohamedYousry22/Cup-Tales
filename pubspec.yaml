@@ -50,7 +50,11 @@ dependencies:
   firebase_core: ^4.5.0
   http: ^1.6.0
   webview_flutter: ^4.13.1
-  onesignal_flutter: ^5.2.2
+  onesignal_flutter: ^5.2.6
+  app_settings: ^5.1.1
+  path_parsing: ^1.1.0
+  path_drawing: ^1.0.1
+  svg_path_parser: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -67,10 +71,12 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/logo/logo.png"
-  adaptive_icon_background: "#00000000"
-  adaptive_icon_foreground: "assets/images/logo/logo.png"
+  image_path_ios: "assets/images/logo/logo_padded.png"
+  image_path_android: "assets/images/logo/logo_padded.png"
+  adaptive_icon_background: "#2D3194"
+  adaptive_icon_foreground: "assets/images/logo/logo_foreground.png"
   remove_alpha_ios: true
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
