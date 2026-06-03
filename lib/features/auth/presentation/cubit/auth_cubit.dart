@@ -194,14 +194,34 @@ class AuthCubit extends Cubit<AuthState> {
 
     emit(AuthLoading());
     try {
-      await _authService.signUp(
+      final response = await _authService.signUp(
         email: email,
         password: password,
         fullName: fullName,
         phone: phone,
       );
-      emit(const AuthError(
-          'Account created successfully. Please verify your email.'));
+
+      // When "Confirm email" is DISABLED in Supabase, signUp returns an active
+      // session immediately. The auth stream listener will fire a signedIn event
+      // and emit AuthAuthenticated automatically.
+      //
+      // However, as a safety net, if the stream has already marked the initial
+      // state as handled (app is running), we manually trigger the authenticated
+      // state in case the signedIn event arrives before we return here.
+      if (response.session != null && _isInitialStateHandled) {
+        try {
+          final role = await _profileService.getUserRole();
+          emit(AuthAuthenticated(isAdmin: role == 'admin'));
+        } catch (_) {
+          emit(const AuthAuthenticated(isAdmin: false));
+        }
+      }
+      // If session is null, email confirmation is still ON in the dashboard —
+      // show a helpful error so the developer knows what to fix.
+      else if (response.session == null && response.user != null) {
+        emit(const AuthError(
+            'Account created — but email confirmation is still enabled in your Supabase dashboard. Please disable it to allow instant login.'));
+      }
     } catch (e) {
       emit(AuthError(e.toString().replaceFirst('Exception: ', '')));
     }

@@ -17,7 +17,6 @@ const _kLogoNavy = Color(0xFF17185A);
 const _kLogoBlue = Color(0xFF2D3194);
 const _kLogoViolet = Color(0xFF4E46B4);
 const _kSlate900 = Color(0xFF0F172A);
-const _kSlate800 = Color(0xFF1E293B);
 const _kSlate400 = Color(0xFF94A3B8);
 
 // ─── Page ────────────────────────────────────────────────────────────────────
@@ -298,48 +297,7 @@ class _LoginPageState extends State<LoginPage>
                                   );
                                 },
                               ),
-                              const SizedBox(height: 14),
-                              // Google
-                              _TappableButton(
-                                onTap: () =>
-                                    context.read<AuthCubit>().loginWithGoogle(),
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 64,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(14),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withAlpha(51),
-                                        blurRadius: 16,
-                                        offset: const Offset(0, 6),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      CustomPaint(
-                                        size: const Size(24, 24),
-                                        painter: _GoogleLogoPainter(),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        context.tr(
-                                          'Continue with Google',
-                                          'المتابعة مع جوجل',
-                                        ),
-                                        style: const TextStyle(
-                                          color: _kSlate800,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+
                               const SizedBox(height: 24),
                               // Sign up link
                               RichText(
@@ -495,93 +453,6 @@ class _TappableButtonState extends State<_TappableButton> {
       ),
     );
   }
-}
-
-// ─── Google Logo ──────────────────────────────────────────────────────────────
-
-class _GoogleLogoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final s = size.width / 24;
-    final p = Paint()..style = PaintingStyle.fill;
-
-    p.color = const Color(0xFF4285F4);
-    canvas.drawPath(
-      Path()
-        ..moveTo(22.56 * s, 12.25 * s)
-        ..cubicTo(22.56 * s, 11.47 * s, 22.49 * s, 10.72 * s, 22.36 * s, 10 * s)
-        ..lineTo(12 * s, 10 * s)
-        ..lineTo(12 * s, 14.26 * s)
-        ..lineTo(17.92 * s, 14.26 * s)
-        ..cubicTo(
-          17.66 * s,
-          15.63 * s,
-          16.88 * s,
-          16.79 * s,
-          15.71 * s,
-          17.57 * s,
-        )
-        ..lineTo(15.71 * s, 20.34 * s)
-        ..lineTo(19.28 * s, 20.34 * s)
-        ..cubicTo(
-          21.36 * s,
-          18.42 * s,
-          22.56 * s,
-          15.60 * s,
-          22.56 * s,
-          12.25 * s,
-        )
-        ..close(),
-      p,
-    );
-
-    p.color = const Color(0xFF34A853);
-    canvas.drawPath(
-      Path()
-        ..moveTo(12 * s, 23 * s)
-        ..cubicTo(14.97 * s, 23 * s, 17.46 * s, 22.02 * s, 19.28 * s, 20.34 * s)
-        ..lineTo(15.71 * s, 17.57 * s)
-        ..cubicTo(14.73 * s, 18.23 * s, 13.48 * s, 18.63 * s, 12 * s, 18.63 * s)
-        ..cubicTo(9.14 * s, 18.63 * s, 6.71 * s, 16.70 * s, 5.84 * s, 14.10 * s)
-        ..lineTo(2.18 * s, 14.10 * s)
-        ..lineTo(2.18 * s, 16.94 * s)
-        ..cubicTo(3.99 * s, 20.53 * s, 7.70 * s, 23 * s, 12 * s, 23 * s)
-        ..close(),
-      p,
-    );
-
-    p.color = const Color(0xFFFBBC05);
-    canvas.drawPath(
-      Path()
-        ..moveTo(5.84 * s, 14.09 * s)
-        ..cubicTo(5.62 * s, 13.43 * s, 5.49 * s, 12.73 * s, 5.49 * s, 12 * s)
-        ..cubicTo(5.49 * s, 11.27 * s, 5.62 * s, 10.57 * s, 5.84 * s, 9.91 * s)
-        ..lineTo(5.84 * s, 7.07 * s)
-        ..lineTo(2.18 * s, 7.07 * s)
-        ..cubicTo(1.43 * s, 8.55 * s, 1 * s, 10.22 * s, 1 * s, 12 * s)
-        ..cubicTo(1 * s, 13.78 * s, 1.43 * s, 15.45 * s, 2.18 * s, 16.93 * s)
-        ..lineTo(5.84 * s, 14.09 * s)
-        ..close(),
-      p,
-    );
-
-    p.color = const Color(0xFFEA4335);
-    canvas.drawPath(
-      Path()
-        ..moveTo(12 * s, 5.38 * s)
-        ..cubicTo(13.62 * s, 5.38 * s, 15.06 * s, 5.94 * s, 16.21 * s, 7.02 * s)
-        ..lineTo(19.36 * s, 3.87 * s)
-        ..cubicTo(17.45 * s, 2.09 * s, 14.97 * s, 1 * s, 12 * s, 1 * s)
-        ..cubicTo(7.70 * s, 1 * s, 3.99 * s, 3.47 * s, 2.18 * s, 7.07 * s)
-        ..lineTo(5.84 * s, 9.91 * s)
-        ..cubicTo(6.71 * s, 7.31 * s, 9.14 * s, 5.38 * s, 12 * s, 5.38 * s)
-        ..close(),
-      p,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_GoogleLogoPainter _) => false;
 }
 
 class _AuthBackdropPainter extends CustomPainter {

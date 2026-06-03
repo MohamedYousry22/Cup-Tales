@@ -30,7 +30,8 @@ class AuthService {
           if (fullName != null) 'full_name': fullName,
           if (phone != null) 'phone': phone,
         },
-        emailRedirectTo: 'io.supabase.flutter://login-callback/',
+        // No emailRedirectTo — we rely on "Confirm email" being OFF in the
+        // Supabase dashboard so the session is created immediately after signUp.
       );
 
       // Create profile record immediately
@@ -62,12 +63,6 @@ class AuthService {
         email: email,
         password: password,
       );
-
-      // Check if email is confirmed
-      if (response.user != null && response.user!.emailConfirmedAt == null) {
-        throw const AuthException(
-            'Please verify your email before logging in.');
-      }
 
       // Upsert profile to profiles table
       if (response.user != null) {
@@ -187,8 +182,8 @@ class AuthService {
 
   Future<void> signOut() async {
     try {
-      // Disconnect Google session to allow account re-selection on next login
-      await GoogleSignIn().signOut();
+      // Silently disconnect any Google session (fire-and-forget — not all users use Google)
+      GoogleSignIn().signOut().ignore();
       // Clear Supabase session
       await _client.auth.signOut();
     } catch (e) {
