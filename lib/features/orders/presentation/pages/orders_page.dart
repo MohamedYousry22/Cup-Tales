@@ -235,7 +235,7 @@ class _OrdersViewState extends State<_OrdersView> {
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                       itemCount: displayed.length,
                       itemBuilder: (context, index) =>
-                          _OrderCard(order: displayed[index]),
+                          _OrderCard(order: displayed[index], displayNumber: displayed.length - index),
                     ),
                   ),
           ),
@@ -365,15 +365,16 @@ class _FilterButton extends StatelessWidget {
 
 class _OrderCard extends StatelessWidget {
   final OrderEntity order;
+  final int displayNumber;
 
-  const _OrderCard({required this.order});
+  const _OrderCard({required this.order, required this.displayNumber});
 
   @override
   Widget build(BuildContext context) {
     context.watch<LanguageCubit>();
     if (order.items.isEmpty) return const SizedBox.shrink();
 
-    final shortId = order.id.length > 8 ? order.id.substring(0, 8) : order.id;
+    final shortId = displayNumber.toString();
     final isAr = context.loc.isAr;
 
     return Container(

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../home/presentation/pages/main_page.dart';
-import 'login_page.dart';
+import 'register_page.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import '../../../../core/routing/app_router.dart';
@@ -36,7 +36,7 @@ class AuthGate extends StatelessWidget {
           } else if (state is AuthAuthenticated) {
             return MainPage(key: ValueKey('auth_${state.runtimeType}')); 
           } else {
-            return LoginPage(key: ValueKey('auth_${state.runtimeType}'));
+            return RegisterPage(key: ValueKey('auth_${state.runtimeType}'));
           }
         },
       ),

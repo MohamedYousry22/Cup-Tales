@@ -70,7 +70,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                 child: Column(
                   children: [
                     SwitchListTile(
-                      activeThumbColor: AppColors.primary,
+                      activeColor: AppColors.primary,
                       activeTrackColor:
                           AppColors.primary.withValues(alpha: 0.5),
                       title: Text(
@@ -90,7 +90,7 @@ class _NotificationsSettingsPageState extends State<NotificationsSettingsPage> {
                     ),
                     const Divider(height: 1),
                     SwitchListTile(
-                      activeThumbColor: AppColors.primary,
+                      activeColor: AppColors.primary,
                       activeTrackColor:
                           AppColors.primary.withValues(alpha: 0.5),
                       title: Text(

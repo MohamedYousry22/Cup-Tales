@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         applicationId = "com.cup.tales.cup_tales"
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -31,11 +31,21 @@ android {
 
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = "my-key"
+            keyPassword = "123456"
+            storeFile = file("my-release-key.jks")
+            storePassword = "123456"
+        }
+    }
+
     buildTypes {
         getByName("release") {
-            // حالياً هنستخدم نفس بصمة الـ debug للـ release عشان التجربة تشتغل
+            signingConfig = signingConfigs.getByName("release")
         }
         getByName("debug") {
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }

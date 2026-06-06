@@ -113,19 +113,36 @@ class _LoginPageState extends State<LoginPage>
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // ── Top: Language toggle ──────────────────────
-                        // ── Language toggle ─────────────────────────────
+                        // ── Top: Language toggle & optional Back ────────
                         Padding(
                           padding: const EdgeInsets.only(top: 16),
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: BlocBuilder<LanguageCubit, LanguageState>(
-                              builder: (context, langState) {
-                                final isEn =
-                                    langState.language == AppLanguage.en;
-                                return _LangToggle(isEn: isEn);
-                              },
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              if (Navigator.canPop(context))
+                                GestureDetector(
+                                  onTap: () => Navigator.pop(context),
+                                  child: Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(Icons.arrow_back_ios_new_rounded,
+                                        color: Colors.white, size: 18),
+                                  ),
+                                )
+                              else
+                                const SizedBox(width: 44, height: 44),
+                              BlocBuilder<LanguageCubit, LanguageState>(
+                                builder: (context, langState) {
+                                  final isEn =
+                                      langState.language == AppLanguage.en;
+                                  return _LangToggle(isEn: isEn);
+                                },
+                              ),
+                            ],
                           ),
                         ),
 
@@ -318,10 +335,16 @@ class _LoginPageState extends State<LoginPage>
                                     ),
                                     WidgetSpan(
                                       child: GestureDetector(
-                                        onTap: () => Navigator.pushNamed(
-                                          context,
-                                          AppRouter.register,
-                                        ),
+                                        onTap: () {
+                                          if (Navigator.canPop(context)) {
+                                            Navigator.pop(context);
+                                          } else {
+                                            Navigator.pushNamed(
+                                              context,
+                                              AppRouter.register,
+                                            );
+                                          }
+                                        },
                                         child: Text(
                                           context.loc.signUp,
                                           style: const TextStyle(

@@ -115,19 +115,22 @@ class _RegisterPageState extends State<RegisterPage>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
+                        if (Navigator.canPop(context))
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                                  color: Colors.white, size: 18),
                             ),
-                            child: const Icon(Icons.arrow_back_ios_new_rounded,
-                                color: Colors.white, size: 18),
-                          ),
-                        ),
+                          )
+                        else
+                          const SizedBox(width: 44, height: 44),
                         // ── Language toggle ─────────────────────────────
                         BlocBuilder<LanguageCubit, LanguageState>(
                           builder: (context, langState) {
@@ -280,7 +283,13 @@ class _RegisterPageState extends State<RegisterPage>
                           ),
                           WidgetSpan(
                             child: GestureDetector(
-                              onTap: () => Navigator.pop(context),
+                              onTap: () {
+                                if (Navigator.canPop(context)) {
+                                  Navigator.pop(context);
+                                } else {
+                                  Navigator.pushNamed(context, AppRouter.login);
+                                }
+                              },
                               child: Text(
                                 context.loc.login,
                                 style: const TextStyle(
