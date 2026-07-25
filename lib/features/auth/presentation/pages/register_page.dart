@@ -9,6 +9,7 @@ import '../../../../core/localization/language_cubit.dart';
 import '../../../../core/localization/language_state.dart';
 import '../../../../core/localization/app_language.dart';
 import '../../../../core/routing/app_router.dart';
+import '../widgets/google_auth_button.dart';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -59,11 +60,11 @@ class _RegisterPageState extends State<RegisterPage>
 
   void _register() {
     context.read<AuthCubit>().register(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-          fullName: _fullNameController.text.trim(),
-          phone: _phoneController.text.trim(),
-        );
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      fullName: _fullNameController.text.trim(),
+      phone: _phoneController.text.trim(),
+    );
   }
 
   @override
@@ -85,8 +86,9 @@ class _RegisterPageState extends State<RegisterPage>
           }
 
           if (state is AuthError) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         child: Stack(
@@ -125,8 +127,11 @@ class _RegisterPageState extends State<RegisterPage>
                                 color: Colors.white.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Icon(Icons.arrow_back_ios_new_rounded,
-                                  color: Colors.white, size: 18),
+                              child: const Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                             ),
                           )
                         else
@@ -175,8 +180,10 @@ class _RegisterPageState extends State<RegisterPage>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      context.tr('Join us and start your coffee journey',
-                          'انضم إلينا وابدأ رحلتك مع القهوة'),
+                      context.tr(
+                        'Join us and start your coffee journey',
+                        'انضم إلينا وابدأ رحلتك مع القهوة',
+                      ),
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 15,
@@ -191,7 +198,9 @@ class _RegisterPageState extends State<RegisterPage>
                     _AuthInputField(
                       controller: _fullNameController,
                       hint: context.tr(
-                          'Enter your full name', 'أدخل اسمك الكامل'),
+                        'Enter your full name',
+                        'أدخل اسمك الكامل',
+                      ),
                       keyboardType: TextInputType.name,
                       isArabic: context.isArabic,
                     ),
@@ -201,7 +210,9 @@ class _RegisterPageState extends State<RegisterPage>
                     _AuthInputField(
                       controller: _phoneController,
                       hint: context.tr(
-                          'Enter your phone number', 'أدخل رقم هاتفك'),
+                        'Enter your phone number',
+                        'أدخل رقم هاتفك',
+                      ),
                       keyboardType: TextInputType.phone,
                       isArabic: context.isArabic,
                     ),
@@ -211,7 +222,9 @@ class _RegisterPageState extends State<RegisterPage>
                     _AuthInputField(
                       controller: _emailController,
                       hint: context.tr(
-                          'Enter your email', 'أدخل بريدك الإلكتروني'),
+                        'Enter your email',
+                        'أدخل بريدك الإلكتروني',
+                      ),
                       keyboardType: TextInputType.emailAddress,
                       isArabic: context.isArabic,
                     ),
@@ -271,14 +284,51 @@ class _RegisterPageState extends State<RegisterPage>
                     const SizedBox(height: 24),
 
                     // ── Sign in link ───────────────────────────────────
+                    Row(
+                      children: [
+                        const Expanded(child: Divider(color: Colors.white38)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            context.tr('OR', 'أو'),
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const Expanded(child: Divider(color: Colors.white38)),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    BlocBuilder<AuthCubit, AuthState>(
+                      builder: (context, state) {
+                        return GoogleAuthButton(
+                          label: context.tr(
+                            'Continue with Google',
+                            'المتابعة باستخدام Google',
+                          ),
+                          onPressed: state is AuthLoading
+                              ? null
+                              : () =>
+                                    context.read<AuthCubit>().loginWithGoogle(),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
                     RichText(
                       text: TextSpan(
                         style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w500),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                         children: [
                           TextSpan(
-                            text: context.tr('Already have an account? ',
-                                'لديك حساب بالفعل؟ '),
+                            text: context.tr(
+                              'Already have an account? ',
+                              'لديك حساب بالفعل؟ ',
+                            ),
                             style: const TextStyle(color: Colors.white70),
                           ),
                           WidgetSpan(
@@ -315,19 +365,19 @@ class _RegisterPageState extends State<RegisterPage>
   }
 
   Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+    padding: const EdgeInsets.only(left: 4),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
         ),
-      );
+      ),
+    ),
+  );
 }
 
 // ─── Input Field ─────────────────────────────────────────────────────────────
@@ -362,8 +412,10 @@ class _AuthInputField extends StatelessWidget {
         hintStyle: const TextStyle(color: _kSlate400, fontSize: 15),
         filled: true,
         fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 18,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -377,13 +429,12 @@ class _AuthInputField extends StatelessWidget {
           borderSide: const BorderSide(color: Colors.white54, width: 2),
         ),
         suffixIcon: suffix != null
-            ? Padding(
-                padding: const EdgeInsets.only(right: 14),
-                child: suffix,
-              )
+            ? Padding(padding: const EdgeInsets.only(right: 14), child: suffix)
             : null,
-        suffixIconConstraints:
-            const BoxConstraints(minWidth: 40, minHeight: 40),
+        suffixIconConstraints: const BoxConstraints(
+          minWidth: 40,
+          minHeight: 40,
+        ),
       ),
     );
   }
@@ -433,11 +484,7 @@ class _AuthBackdropPainter extends CustomPainter {
       ..shader = const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFF080B2A),
-          _kLogoNavy,
-          _kLogoBlue,
-        ],
+        colors: [Color(0xFF080B2A), _kLogoNavy, _kLogoBlue],
         stops: [0, 0.58, 1],
       ).createShader(rect);
     canvas.drawRect(rect, gradientPaint);
@@ -474,15 +521,19 @@ class _AuthBackdropPainter extends CustomPainter {
     }
 
     glow(
-      Offset(size.width * (0.18 + 0.04 * math.sin(progress * math.pi * 2)),
-          size.height * 0.22),
+      Offset(
+        size.width * (0.18 + 0.04 * math.sin(progress * math.pi * 2)),
+        size.height * 0.22,
+      ),
       size.width * 0.42,
       const Color(0xFF4E6CFF),
       0.22,
     );
     glow(
-      Offset(size.width * (0.86 + 0.03 * math.cos(progress * math.pi * 2)),
-          size.height * 0.68),
+      Offset(
+        size.width * (0.86 + 0.03 * math.cos(progress * math.pi * 2)),
+        size.height * 0.68,
+      ),
       size.width * 0.5,
       _kLogoViolet,
       0.22,
@@ -519,8 +570,9 @@ class _AuthBackdropPainter extends CustomPainter {
       final y = size.height * bean.dy + math.cos(phase * 0.9) * 6;
       final beanScale = 0.72 + (i % 4) * 0.1;
       final beanPaint = Paint()
-        ..color =
-            const Color(0xFFD2A06C).withValues(alpha: 0.24 + (i % 3) * 0.04);
+        ..color = const Color(
+          0xFFD2A06C,
+        ).withValues(alpha: 0.24 + (i % 3) * 0.04);
       canvas.save();
       canvas.translate(x, y);
       canvas.rotate(-0.9 + i * 0.47 + math.sin(phase) * 0.08);

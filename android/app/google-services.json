@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:684663003564:android:e6aa016400794f2c840209",
         "android_client_info": {
-          "package_name": "com.cup.tales.cup_tales"
+          "package_name": "com.cuptales.app"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "684663003564-984dgpmp15anrmrrc4uo2sd8e78d717t.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.cup.tales.cup_tales",
+            "package_name": "com.cuptales.app",
             "certificate_hash": "c124dc731fef72896365086ad714e62ea7ee7a58"
           }
         },
@@ -25,7 +25,7 @@
           "client_id": "684663003564-i2rprlfs8fi1n26e7q7lv0i4l3938vi5.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.cup.tales.cup_tales",
+            "package_name": "com.cuptales.app",
             "certificate_hash": "bf600fd1a0210d21083d232479b7969795e65ccf"
           }
         },

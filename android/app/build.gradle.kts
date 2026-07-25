@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -7,11 +10,16 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-android {
-    namespace = "com.cup.tales.cup_tales"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
 
+android {
+    namespace = "com.cuptales.app"
+    compileSdk = 36
+    ndkVersion = "27.0.12077973"
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -22,30 +30,26 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.cup.tales.cup_tales"
-        minSdk = 23
-        targetSdk = flutter.targetSdkVersion
+        // Must match the package name of the app already published on Google Play.
+        applicationId = "com.cuptales.app"
+        minSdk = flutter.minSdkVersion
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        
-
     }
 
     signingConfigs {
         create("release") {
-            keyAlias = "my-key"
-            keyPassword = "123456"
-            storeFile = file("my-release-key.jks")
-            storePassword = "123456"
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String
         }
     }
 
     buildTypes {
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
-        }
-        getByName("debug") {
-            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }

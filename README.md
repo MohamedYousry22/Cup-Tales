@@ -1,155 +1,128 @@
-# ☕ Cup Tales
+<div align="center">
+  <img src="assets/images/logo/launcher_icon.png" alt="Cup Tales logo" width="150" />
 
-A modern, client-focused digital menu and ordering application developed exclusively for a cafe business. **Cup Tales** was designed to enhance the customer ordering experience through a fast, intuitive, and visually engaging mobile interface while providing a streamlined ordering workflow tailored to local market requirements.
+  # Cup Tales
 
-> **Portfolio Showcase Project**  
-> This repository exists solely to demonstrate the technical capabilities, architecture decisions, and development expertise involved in building a production-grade Flutter application. The source code is proprietary and not publicly available.
+  **A polished café ordering experience for Android and iOS.**
 
----
+  تطبيق كوب تيلز لتصفّح المنيو، إدارة السلة، وإرسال الطلبات بسهولة.
 
-## Overview
+  ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)
+  ![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart&logoColor=white)
+  ![Android](https://img.shields.io/badge/Android-API%2036-3DDC84?logo=android&logoColor=white)
+  ![iOS](https://img.shields.io/badge/iOS-Supported-000000?logo=apple&logoColor=white)
+  ![License](https://img.shields.io/badge/License-MIT-blue.svg)
+</div>
 
-Cup Tales transforms the traditional cafe menu into a fully digital experience, enabling customers to browse products, manage orders, and complete purchases with minimal friction.
+## About
 
-The application emphasizes:
+Cup Tales is a production-focused Flutter application that turns the café menu
+and ordering flow into a fast, localized mobile experience. The app combines a
+clean Arabic-first interface with secure authentication, live product data,
+cart management, order tracking, and customer notifications.
 
-- Fast user onboarding and authentication
-- Smooth and responsive user experience
-- Real-time order management
-- Modern mobile-first design
-- Reliable backend infrastructure
-- Scalable and maintainable architecture
+## Features
 
----
-
-## Key Features
-
-### 🔐 Seamless Authentication
-
-A streamlined authentication system built to minimize onboarding friction and maximize user convenience.
-
-**Highlights:**
-- Email and password authentication
-- Instant auto-login experience
-- Persistent user sessions
-- Secure authentication handling through Supabase
-- Optimized user flow without mandatory email verification
-
----
-
-### 🛒 Dynamic Cart Management
-
-An interactive cart system designed to provide a smooth ordering experience.
-
-**Capabilities:**
-- Add products to cart in real time
-- Remove products instantly
-- Update item quantities
-- Automatic order total calculations
-- Responsive cart state synchronization across the application
-
----
-
-### 💵 Localized Checkout Experience
-
-A checkout workflow specifically optimized for local customer expectations.
-
-**Features:**
-- Cash on Delivery (COD) ordering process
-- Simplified checkout flow
-- Minimal user input requirements
-- Fast order confirmation experience
-- No dependency on external payment gateways
-
----
-
-### ✨ Premium UI & User Experience
-
-A carefully crafted interface designed to align with the cafe's visual identity and branding.
-
-**Design Focus:**
-- Custom-built Flutter widgets
-- Smooth transitions and animations
-- Consistent design language
-- Responsive layouts across devices
-- User-centric navigation patterns
-- Modern and polished visual presentation
-
----
-
-## Technical Architecture
-
-The application follows a scalable architecture focused on maintainability, performance, and clean separation of concerns.
-
-### Frontend
-- **Flutter**
-  - Cross-platform mobile development
-  - High-performance rendering
-  - Custom UI implementation
-
-### State Management
-- **BLoC / Cubit**
-  - Predictable state transitions
-  - Separation of business logic from UI
-  - Improved maintainability and testability
-
-### Backend & Infrastructure
-- **Supabase**
-  - PostgreSQL database
-  - Authentication services
-  - Secure data management
-  - Scalable backend infrastructure
-
----
-
-## Development Highlights
-
-Throughout the development process, special attention was given to:
-
-- Clean architecture principles
-- Reusable UI components
-- Modular code organization
-- Scalable state management
-- Performance optimization
-- Consistent user experience
-- Production-oriented development practices
-
----
+- Email/password and Google authentication
+- Persistent sessions and automatic sign-in restoration
+- Dynamic categories, products, and product details
+- Cart quantity management and automatic total calculation
+- Localized checkout and cash-on-delivery ordering
+- Order history and status tracking
+- Push notifications through OneSignal
+- Arabic localization and responsive mobile layouts
+- Branded launcher icons and native splash experience
+- Android 16 / API 36 support
 
 ## Technology Stack
 
-| Layer | Technology |
-|---------|------------|
-| Mobile Framework | Flutter |
-| State Management | BLoC / Cubit |
-| Backend Platform | Supabase |
-| Database | PostgreSQL |
-| Authentication | Supabase Auth |
-| UI/UX | Custom Flutter Components & Animations |
+| Area | Technology |
+| --- | --- |
+| Mobile | Flutter, Dart |
+| Architecture | Feature-first, layered architecture |
+| State management | BLoC / Cubit |
+| Backend and database | Supabase, PostgreSQL |
+| Authentication | Supabase Auth, Google Sign-In |
+| Platform services | Firebase Core |
+| Notifications | OneSignal |
+| Networking | Dio, HTTP |
+| Local storage | Hive, Shared Preferences |
 
----
+## Project Structure
 
-## Project Scope
+```text
+lib/
+├── core/                   # Shared config, services, theme, and widgets
+├── features/
+│   ├── auth/               # Login, registration, and session handling
+│   ├── cart/               # Cart state and presentation
+│   ├── categories/         # Category data and UI
+│   ├── checkout/           # Checkout workflow
+│   ├── home/               # Main customer experience
+│   ├── orders/             # Order creation and history
+│   ├── products/           # Product catalog and details
+│   ├── profile/            # Customer profile
+│   └── splash/             # Startup and routing
+└── main.dart
+```
 
-Cup Tales was developed as a dedicated commercial solution for a specific cafe client. The application is tailored to the client's operational requirements, branding guidelines, and customer experience goals.
+## Current Release
 
-As a result, certain business-specific implementations, assets, and internal workflows are intentionally omitted from this portfolio presentation.
+| Property | Value |
+| --- | --- |
+| App version | `1.0.2` |
+| Android version code | `3` |
+| Android application ID | `com.cuptales.app` |
+| Android target SDK | `36` |
+| Minimum Android version | Android 7.0 / API 24 |
 
----
+## Getting Started
 
-## Copyright & Proprietary Notice
+### Prerequisites
 
-© All Rights Reserved.
+- Flutter stable with Dart 3
+- Android SDK 36 for Android builds
+- Xcode and CocoaPods for iOS builds
+- Supabase, Firebase, Google OAuth, and OneSignal project access
 
-This project is a **closed-source proprietary commercial application** developed for a private client. The source code, architecture, assets, and business logic are not licensed for public use, redistribution, modification, or reproduction.
+### Installation
 
-This repository and documentation are provided strictly for portfolio and professional showcase purposes.
+```bash
+git clone https://github.com/MohamedYousry22/Cup-Tales.git
+cd Cup-Tales
+flutter pub get
+flutter run
+```
 
----
+Platform service files and identifiers must match the Firebase, Google OAuth,
+Supabase, and OneSignal projects used by the target environment.
 
-## Developers & Team
+## Quality Checks
 
-### Mobile Application Developers
+```bash
+flutter analyze
+flutter test
+```
 
-- **Anas Ayman El-Gebaili**
-- **Mohamed Yosry**
+## Release Builds
+
+```bash
+# Android App Bundle
+flutter build appbundle --release
+
+# iOS archive prerequisites
+flutter build ios --release
+```
+
+Android release signing values belong in `android/key.properties`. Keystores,
+certificates, generated release artifacts, OAuth client-secret downloads, and
+local environment files are intentionally excluded from version control.
+
+## Contributors
+
+- Anas Ayman El-Gebaili
+- Mohamed Yousry
+
+## License
+
+This project is available under the [MIT License](LICENSE).

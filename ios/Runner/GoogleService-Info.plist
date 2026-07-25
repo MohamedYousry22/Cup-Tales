@@ -8,8 +8,12 @@
 	<string>684663003564</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
+	<key>CLIENT_ID</key>
+	<string>684663003564-3a8a4tabuemqu2qfvm3n34bomr1sc405.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.684663003564-3a8a4tabuemqu2qfvm3n34bomr1sc405</string>
 	<key>BUNDLE_ID</key>
-	<string>com.cup.tales.cup-tales</string>
+	<string>com.cup.tales.cupTales</string>
 	<key>PROJECT_ID</key>
 	<string>cup-tales-b4df2</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:684663003564:ios:7dc65711164902dd840209</string>
+	<string>1:684663003564:ios:d5413d8d2b1cd589840209</string>
 </dict>
 </plist>

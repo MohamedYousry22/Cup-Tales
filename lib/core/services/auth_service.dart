@@ -1,8 +1,7 @@
-import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../config/supabase_config.dart';
 
 class AuthService {
   // Lazy getter — Supabase.instance is only accessed when a method is called,
@@ -86,34 +85,29 @@ class AuthService {
 
   Future<void> signInWithGoogle() async {
     try {
-      if (kDebugMode) debugPrint('AuthService: Starting Native Google Sign-In');
+      if (kDebugMode) {
+        debugPrint('AuthService: Starting Native Google Sign-In');
+      }
 
-      // 1. Generate a secure random string (rawNonce)
-      final rawNonce = _generateRandomString(16);
-
-
-      // 3. Initialize Google Sign-In
-      // ⚠️ CRITICAL FIX: serverClientId MUST be the WEB CLIENT ID
-      const webClientId =
-          '684663003564-7bb83qfvsvr26to8q1ld7vffvu80cgsn.apps.googleusercontent.com';
-
+      // Android reads its package/certificate mapping from google-services.json.
+      // Supabase validates the token against the Web OAuth client ID.
       final googleSignIn = GoogleSignIn(
-        // The Android Client ID (from google-services.json) explicitly provided to prevent ApiException 10
-        clientId: '684663003564-984dgpmp15anrmrrc4uo2sd8e78d717t.apps.googleusercontent.com',
-        // The Web Client ID needed by Supabase for server-side validation and token exchange
-        serverClientId: webClientId,
+        clientId: defaultTargetPlatform == TargetPlatform.iOS
+            ? SupabaseConfig.googleIosClientId
+            : null,
+        serverClientId: SupabaseConfig.googleWebClientId,
       );
 
-      // 4. Force clear any cached Google session so the account picker always appears
+      // Clear any cached Google session so the account picker always appears.
       await googleSignIn.signOut();
 
-      // 5. Trigger native account picker
+      // Trigger the native account picker.
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         throw const AuthException('Google sign-in was cancelled');
       }
 
-      // 5. Get the auth details (IdToken and AccessToken)
+      // Exchange Google's native tokens for a Supabase session.
       final googleAuth = await googleUser.authentication;
       final idToken = googleAuth.idToken;
       final accessToken = googleAuth.accessToken;
@@ -121,32 +115,30 @@ class AuthService {
       if (idToken == null) {
         throw const AuthException('Could not retrieve Google ID Token.');
       }
+      if (accessToken == null) {
+        throw const AuthException('Could not retrieve Google access token.');
+      }
 
-      // 6. Authenticate with Supabase using the rawNonce
       await _client.auth.signInWithIdToken(
         provider: OAuthProvider.google,
         idToken: idToken,
         accessToken: accessToken,
-        nonce: rawNonce,
       );
 
-      if (kDebugMode) debugPrint('AuthService: Native Google Sign-In successful');
+      if (kDebugMode) {
+        debugPrint('AuthService: Native Google Sign-In successful');
+      }
     } on AuthException catch (e) {
       if (kDebugMode) {
-        debugPrint('AuthService: AuthException during Google Sign-In: ${e.message}');
+        debugPrint(
+          'AuthService: AuthException during Google Sign-In: ${e.message}',
+        );
       }
       throw Exception(_parseAuthError(e.message));
     } catch (e) {
       debugPrint('AuthService: Unexpected error during Google Sign-In: $e');
       throw Exception('Google Sign-In error: ${e.toString()}');
     }
-  }
-
-  /// Helper to generate a 16-byte random string for the OIDC nonce
-  String _generateRandomString([int length = 16]) {
-    final random = Random.secure();
-    return base64Url
-        .encode(List<int>.generate(length, (_) => random.nextInt(256)));
   }
 
   // ─── Reset Password ───────────────────────────────────────────────────────
@@ -168,9 +160,7 @@ class AuthService {
 
   Future<void> updatePassword(String newPassword) async {
     try {
-      await _client.auth.updateUser(
-        UserAttributes(password: newPassword),
-      );
+      await _client.auth.updateUser(UserAttributes(password: newPassword));
     } on AuthException catch (e) {
       throw Exception(_parseAuthError(e.message));
     } catch (e) {

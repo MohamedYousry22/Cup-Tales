@@ -1,4 +1,4 @@
-package com.cup.tales.cup_tales
+package com.cuptales.app
 
 import android.content.Intent
 import android.os.Bundle
@@ -12,7 +12,7 @@ class MainActivity : FlutterActivity() {
         val isRestored = savedInstanceState != null
         val intentAction = intent?.action ?: "null"
         val intentData = intent?.dataString ?: "null"
-        
+
         Log.d("CupTalesLifecycle", "========================================")
         Log.d("CupTalesLifecycle", "[MainActivity] onCreate called. isRestored=$isRestored")
         Log.d("CupTalesLifecycle", "[MainActivity] Intent Action: $intentAction")

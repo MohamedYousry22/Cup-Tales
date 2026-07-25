@@ -1,7 +1,7 @@
 {
   "name": "cup-tales",
   "version": "1.0.0",
-  "description": "A new Flutter project.",
+  "description": "Cup Tales mobile ordering experience for Android and iOS.",
   "main": "index.js",
   "directories": {
     "lib": "lib",
@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AnasAyman13/Cup-Tales.git"
+    "url": "git+https://github.com/MohamedYousry22/Cup-Tales.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Cup Tales Team",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/AnasAyman13/Cup-Tales/issues"
+    "url": "https://github.com/MohamedYousry22/Cup-Tales/issues"
   },
-  "homepage": "https://github.com/AnasAyman13/Cup-Tales#readme"
+  "homepage": "https://github.com/MohamedYousry22/Cup-Tales#readme"
 }

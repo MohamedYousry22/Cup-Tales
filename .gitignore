@@ -47,7 +47,24 @@ app.*.map.json
 # User specified entries
 node_modules/
 build/
+**/build/
 .env
 windows/
 linux/
 macos/
+
+# Signing keys, credentials, and local service secrets
+*.jks
+*.keystore
+*.p12
+*.pem
+**/key.properties
+**/local.properties
+android/client_secret_*.json
+
+# Release artifacts and local diagnostic output
+*.aab
+*.apk
+*.ipa
+/analyze_fresh.txt
+/pub_error.txt

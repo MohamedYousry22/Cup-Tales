@@ -9,6 +9,7 @@ import '../../../../core/localization/language_cubit.dart';
 import '../../../../core/localization/language_state.dart';
 import '../../../../core/localization/app_language.dart';
 import '../../../../core/widgets/antigravity_loader.dart';
+import '../widgets/google_auth_button.dart';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -56,9 +57,9 @@ class _LoginPageState extends State<LoginPage>
 
   void _login() {
     context.read<AuthCubit>().login(
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
-        );
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
   }
 
   @override
@@ -105,7 +106,8 @@ class _LoginPageState extends State<LoginPage>
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: MediaQuery.of(context).size.height -
+                    minHeight:
+                        MediaQuery.of(context).size.height -
                         MediaQuery.of(context).padding.top -
                         MediaQuery.of(context).padding.bottom,
                   ),
@@ -126,11 +128,16 @@ class _LoginPageState extends State<LoginPage>
                                     width: 44,
                                     height: 44,
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.12),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.12,
+                                      ),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    child: const Icon(Icons.arrow_back_ios_new_rounded,
-                                        color: Colors.white, size: 18),
+                                    child: const Icon(
+                                      Icons.arrow_back_ios_new_rounded,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
                                   ),
                                 )
                               else
@@ -239,8 +246,8 @@ class _LoginPageState extends State<LoginPage>
                                 onTap: () {
                                   if (_emailController.text.isNotEmpty) {
                                     context.read<AuthCubit>().forgotPassword(
-                                          _emailController.text,
-                                        );
+                                      _emailController.text,
+                                    );
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -315,6 +322,47 @@ class _LoginPageState extends State<LoginPage>
                                 },
                               ),
 
+                              const SizedBox(height: 18),
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Divider(color: Colors.white38),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
+                                    child: Text(
+                                      context.tr('OR', 'أو'),
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  const Expanded(
+                                    child: Divider(color: Colors.white38),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 18),
+                              BlocBuilder<AuthCubit, AuthState>(
+                                builder: (context, state) {
+                                  return GoogleAuthButton(
+                                    label: context.tr(
+                                      'Continue with Google',
+                                      'المتابعة باستخدام Google',
+                                    ),
+                                    onPressed: state is AuthLoading
+                                        ? null
+                                        : () => context
+                                              .read<AuthCubit>()
+                                              .loginWithGoogle(),
+                                  );
+                                },
+                              ),
+
                               const SizedBox(height: 24),
                               // Sign up link
                               RichText(
@@ -374,16 +422,16 @@ class _LoginPageState extends State<LoginPage>
   }
 
   Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.only(left: 4),
+    child: Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  );
 }
 
 // ─── Input Field ─────────────────────────────────────────────────────────────
@@ -490,11 +538,7 @@ class _AuthBackdropPainter extends CustomPainter {
       ..shader = const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Color(0xFF080B2A),
-          _kLogoNavy,
-          _kLogoBlue,
-        ],
+        colors: [Color(0xFF080B2A), _kLogoNavy, _kLogoBlue],
         stops: [0, 0.58, 1],
       ).createShader(rect);
     canvas.drawRect(rect, gradientPaint);
@@ -531,15 +575,19 @@ class _AuthBackdropPainter extends CustomPainter {
     }
 
     glow(
-      Offset(size.width * (0.18 + 0.04 * math.sin(progress * math.pi * 2)),
-          size.height * 0.22),
+      Offset(
+        size.width * (0.18 + 0.04 * math.sin(progress * math.pi * 2)),
+        size.height * 0.22,
+      ),
       size.width * 0.42,
       const Color(0xFF4E6CFF),
       0.22,
     );
     glow(
-      Offset(size.width * (0.86 + 0.03 * math.cos(progress * math.pi * 2)),
-          size.height * 0.68),
+      Offset(
+        size.width * (0.86 + 0.03 * math.cos(progress * math.pi * 2)),
+        size.height * 0.68,
+      ),
       size.width * 0.5,
       _kLogoViolet,
       0.22,
@@ -576,8 +624,9 @@ class _AuthBackdropPainter extends CustomPainter {
       final y = size.height * bean.dy + math.cos(phase * 0.9) * 6;
       final beanScale = 0.72 + (i % 4) * 0.1;
       final beanPaint = Paint()
-        ..color =
-            const Color(0xFFD2A06C).withValues(alpha: 0.24 + (i % 3) * 0.04);
+        ..color = const Color(
+          0xFFD2A06C,
+        ).withValues(alpha: 0.24 + (i % 3) * 0.04);
       canvas.save();
       canvas.translate(x, y);
       canvas.rotate(-0.9 + i * 0.47 + math.sin(phase) * 0.08);
