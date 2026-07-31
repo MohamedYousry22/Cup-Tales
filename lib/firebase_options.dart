@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCZI6FdWVE7M4CxnlV-LnlvzoLeBsuKMEo',
-    appId: '1:684663003564:android:e6aa016400794f2c840209',
+    appId: '1:684663003564:android:52403f60793896a8840209',
     messagingSenderId: '684663003564',
     projectId: 'cup-tales-b4df2',
     storageBucket: 'cup-tales-b4df2.firebasestorage.app',
@@ -64,8 +64,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '684663003564',
     projectId: 'cup-tales-b4df2',
     storageBucket: 'cup-tales-b4df2.firebasestorage.app',
-    androidClientId: '684663003564-984dgpmp15anrmrrc4uo2sd8e78d717t.apps.googleusercontent.com',
-    iosClientId: '684663003564-3a8a4tabuemqu2qfvm3n34bomr1sc405.apps.googleusercontent.com',
+    androidClientId:
+        '684663003564-984dgpmp15anrmrrc4uo2sd8e78d717t.apps.googleusercontent.com',
+    iosClientId:
+        '684663003564-3a8a4tabuemqu2qfvm3n34bomr1sc405.apps.googleusercontent.com',
     iosBundleId: 'com.cup.tales.cupTales',
   );
 
@@ -75,8 +77,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '684663003564',
     projectId: 'cup-tales-b4df2',
     storageBucket: 'cup-tales-b4df2.firebasestorage.app',
-    androidClientId: '684663003564-984dgpmp15anrmrrc4uo2sd8e78d717t.apps.googleusercontent.com',
-    iosClientId: '684663003564-3a8a4tabuemqu2qfvm3n34bomr1sc405.apps.googleusercontent.com',
+    androidClientId:
+        '684663003564-984dgpmp15anrmrrc4uo2sd8e78d717t.apps.googleusercontent.com',
+    iosClientId:
+        '684663003564-3a8a4tabuemqu2qfvm3n34bomr1sc405.apps.googleusercontent.com',
     iosBundleId: 'com.cup.tales.cupTales',
   );
 

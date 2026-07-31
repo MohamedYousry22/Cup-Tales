@@ -21,7 +21,8 @@ class PaymentFailurePage extends StatelessWidget {
               const SizedBox(height: 24),
               Text(
                 context.tr('Payment Failed', 'فشلت عملية الدفع'),
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               Text(

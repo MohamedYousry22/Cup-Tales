@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/auth_cubit.dart';
@@ -57,9 +58,9 @@ class _LoginPageState extends State<LoginPage>
 
   void _login() {
     context.read<AuthCubit>().login(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+        );
   }
 
   @override
@@ -106,8 +107,7 @@ class _LoginPageState extends State<LoginPage>
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight:
-                        MediaQuery.of(context).size.height -
+                    minHeight: MediaQuery.of(context).size.height -
                         MediaQuery.of(context).padding.top -
                         MediaQuery.of(context).padding.bottom,
                   ),
@@ -246,8 +246,8 @@ class _LoginPageState extends State<LoginPage>
                                 onTap: () {
                                   if (_emailController.text.isNotEmpty) {
                                     context.read<AuthCubit>().forgotPassword(
-                                      _emailController.text,
-                                    );
+                                          _emailController.text,
+                                        );
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -322,46 +322,49 @@ class _LoginPageState extends State<LoginPage>
                                 },
                               ),
 
-                              const SizedBox(height: 18),
-                              Row(
-                                children: [
-                                  const Expanded(
-                                    child: Divider(color: Colors.white38),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
+                              if (defaultTargetPlatform ==
+                                  TargetPlatform.android) ...[
+                                const SizedBox(height: 18),
+                                Row(
+                                  children: [
+                                    const Expanded(
+                                      child: Divider(color: Colors.white38),
                                     ),
-                                    child: Text(
-                                      context.tr('OR', 'أو'),
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      child: Text(
+                                        context.tr('OR', 'أو'),
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  const Expanded(
-                                    child: Divider(color: Colors.white38),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 18),
-                              BlocBuilder<AuthCubit, AuthState>(
-                                builder: (context, state) {
-                                  return GoogleAuthButton(
-                                    label: context.tr(
-                                      'Continue with Google',
-                                      'المتابعة باستخدام Google',
+                                    const Expanded(
+                                      child: Divider(color: Colors.white38),
                                     ),
-                                    onPressed: state is AuthLoading
-                                        ? null
-                                        : () => context
+                                  ],
+                                ),
+                                const SizedBox(height: 18),
+                                BlocBuilder<AuthCubit, AuthState>(
+                                  builder: (context, state) {
+                                    return GoogleAuthButton(
+                                      label: context.tr(
+                                        'Continue with Google',
+                                        'المتابعة باستخدام Google',
+                                      ),
+                                      onPressed: state is AuthLoading
+                                          ? null
+                                          : () => context
                                               .read<AuthCubit>()
                                               .loginWithGoogle(),
-                                  );
-                                },
-                              ),
+                                    );
+                                  },
+                                ),
+                              ],
 
                               const SizedBox(height: 24),
                               // Sign up link
@@ -422,16 +425,16 @@ class _LoginPageState extends State<LoginPage>
   }
 
   Widget _label(String text) => Padding(
-    padding: const EdgeInsets.only(left: 4),
-    child: Text(
-      text,
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-      ),
-    ),
-  );
+        padding: const EdgeInsets.only(left: 4),
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
 }
 
 // ─── Input Field ─────────────────────────────────────────────────────────────

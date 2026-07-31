@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:684663003564:android:e6aa016400794f2c840209",
         "android_client_info": {
-          "package_name": "com.cuptales.app"
+          "package_name": "com.cup.tales.cup_tales"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "684663003564-984dgpmp15anrmrrc4uo2sd8e78d717t.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.cuptales.app",
+            "package_name": "com.cup.tales.cup_tales",
             "certificate_hash": "c124dc731fef72896365086ad714e62ea7ee7a58"
           }
         },
@@ -25,7 +25,7 @@
           "client_id": "684663003564-i2rprlfs8fi1n26e7q7lv0i4l3938vi5.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.cuptales.app",
+            "package_name": "com.cup.tales.cup_tales",
             "certificate_hash": "bf600fd1a0210d21083d232479b7969795e65ccf"
           }
         },
@@ -47,10 +47,70 @@
               "client_type": 3
             },
             {
-              "client_id": "684663003564-bno2en7ldufsd0a9gcr6oj616tos7ju8.apps.googleusercontent.com",
+              "client_id": "684663003564-3a8a4tabuemqu2qfvm3n34bomr1sc405.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.cup.tales.cup-tales"
+                "bundle_id": "com.cup.tales.cupTales"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:684663003564:android:52403f60793896a8840209",
+        "android_client_info": {
+          "package_name": "com.cuptales.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "684663003564-dd4cp8f2ujk25j604jj4nsuvh3v2sgd2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cuptales.app",
+            "certificate_hash": "d51f8e3603621c23e57e9d27e15b9ada2e96a982"
+          }
+        },
+        {
+          "client_id": "684663003564-uuemv4bud6b1vg8j2jfuao86apbs1ppb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cuptales.app",
+            "certificate_hash": "bff7943839fff9dc765bc4ba3e0831f7641ccdbc"
+          }
+        },
+        {
+          "client_id": "684663003564-vauni6r3gumt5n2kbkqvj5v4fobq7ndf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cuptales.app",
+            "certificate_hash": "6aae82c56350c5a326e585a02a7df4888f043110"
+          }
+        },
+        {
+          "client_id": "684663003564-7bb83qfvsvr26to8q1ld7vffvu80cgsn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZI6FdWVE7M4CxnlV-LnlvzoLeBsuKMEo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "684663003564-4eo9ahmkp86n0l8brftfjrp6pgsfihsd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "684663003564-3a8a4tabuemqu2qfvm3n34bomr1sc405.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.cup.tales.cupTales"
               }
             }
           ]

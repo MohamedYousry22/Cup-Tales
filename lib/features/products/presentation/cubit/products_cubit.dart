@@ -8,12 +8,14 @@ class ProductsCubit extends Cubit<ProductsState> {
   ProductsCubit(this._getProductsByCategory) : super(ProductsInitial());
 
   Future<void> fetchProducts(String categoryId) async {
+    if (isClosed) return;
     emit(ProductsLoading());
     try {
       final products = await _getProductsByCategory(categoryId);
+      if (isClosed) return;
       emit(ProductsLoaded(products));
     } catch (e) {
-      emit(ProductsError(e.toString()));
+      if (!isClosed) emit(ProductsError(e.toString()));
     }
   }
 }

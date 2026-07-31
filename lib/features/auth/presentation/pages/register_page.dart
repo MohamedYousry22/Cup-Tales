@@ -1,5 +1,7 @@
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
@@ -60,11 +62,11 @@ class _RegisterPageState extends State<RegisterPage>
 
   void _register() {
     context.read<AuthCubit>().register(
-      email: _emailController.text.trim(),
-      password: _passwordController.text.trim(),
-      fullName: _fullNameController.text.trim(),
-      phone: _phoneController.text.trim(),
-    );
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+          fullName: _fullNameController.text.trim(),
+          phone: _phoneController.text.trim(),
+        );
   }
 
   @override
@@ -214,6 +216,10 @@ class _RegisterPageState extends State<RegisterPage>
                         'أدخل رقم هاتفك',
                       ),
                       keyboardType: TextInputType.phone,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(11),
+                      ],
                       isArabic: context.isArabic,
                     ),
                     const SizedBox(height: 22),
@@ -281,41 +287,41 @@ class _RegisterPageState extends State<RegisterPage>
                         );
                       },
                     ),
-                    const SizedBox(height: 24),
-
-                    // ── Sign in link ───────────────────────────────────
-                    Row(
-                      children: [
-                        const Expanded(child: Divider(color: Colors.white38)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            context.tr('OR', 'أو'),
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                    if (defaultTargetPlatform == TargetPlatform.android) ...[
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          const Expanded(child: Divider(color: Colors.white38)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              context.tr('OR', 'أو'),
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
-                        const Expanded(child: Divider(color: Colors.white38)),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-                    BlocBuilder<AuthCubit, AuthState>(
-                      builder: (context, state) {
-                        return GoogleAuthButton(
-                          label: context.tr(
-                            'Continue with Google',
-                            'المتابعة باستخدام Google',
-                          ),
-                          onPressed: state is AuthLoading
-                              ? null
-                              : () =>
+                          const Expanded(child: Divider(color: Colors.white38)),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      BlocBuilder<AuthCubit, AuthState>(
+                        builder: (context, state) {
+                          return GoogleAuthButton(
+                            label: context.tr(
+                              'Continue with Google',
+                              'المتابعة باستخدام Google',
+                            ),
+                            onPressed: state is AuthLoading
+                                ? null
+                                : () =>
                                     context.read<AuthCubit>().loginWithGoogle(),
-                        );
-                      },
-                    ),
+                          );
+                        },
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     RichText(
                       text: TextSpan(
@@ -365,19 +371,19 @@ class _RegisterPageState extends State<RegisterPage>
   }
 
   Widget _label(String text) => Padding(
-    padding: const EdgeInsets.only(left: 4),
-    child: Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
+        padding: const EdgeInsets.only(left: 4),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 }
 
 // ─── Input Field ─────────────────────────────────────────────────────────────
@@ -388,6 +394,7 @@ class _AuthInputField extends StatelessWidget {
   final bool obscure;
   final bool isArabic;
   final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
   final Widget? suffix;
 
   const _AuthInputField({
@@ -396,6 +403,7 @@ class _AuthInputField extends StatelessWidget {
     this.obscure = false,
     this.isArabic = false,
     this.keyboardType,
+    this.inputFormatters,
     this.suffix,
   });
 
@@ -405,6 +413,7 @@ class _AuthInputField extends StatelessWidget {
       controller: controller,
       obscureText: obscure,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       style: const TextStyle(color: _kSlate900, fontSize: 15),
       decoration: InputDecoration(

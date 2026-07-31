@@ -171,7 +171,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           .order('sort_order');
 
       final groups = (groupsRaw as List<dynamic>)
-          .map((r) => _OptionGroup.fromJson(Map<String, dynamic>.from(r as Map)))
+          .map(
+              (r) => _OptionGroup.fromJson(Map<String, dynamic>.from(r as Map)))
           .toList()
         ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
@@ -188,8 +189,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           raw = jsonDecode(raw);
         }
         if (raw is Map) {
-          optionPrices = raw.map((k, v) =>
-              MapEntry(k.toString(), (v as num? ?? 0).toDouble()));
+          optionPrices = raw.map(
+              (k, v) => MapEntry(k.toString(), (v as num? ?? 0).toDouble()));
         }
       } catch (_) {}
 
@@ -214,7 +215,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
 
         // Auto-select the first choice for required single-select groups
         for (final group in groups) {
-          if (!group.multiSelect && group.required && group.choices.isNotEmpty) {
+          if (!group.multiSelect &&
+              group.required &&
+              group.choices.isNotEmpty) {
             _radioSelections[group.id] = group.choices.first.id;
           }
         }
@@ -230,8 +233,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
       }
     }
   }
-
-
 
   // ── Pricing calculation ───────────────────────────────────────────────────
 
@@ -293,7 +294,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
       if (!group.multiSelect) {
         final choiceId = _radioSelections[group.id];
         if (choiceId != null) {
-          final choice = group.choices.where((c) => c.id == choiceId).firstOrNull;
+          final choice =
+              group.choices.where((c) => c.id == choiceId).firstOrNull;
           if (choice != null) {
             map[group.displayName(isAr)] = choice.displayName(isAr);
           }
@@ -463,8 +465,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               if (!group.multiSelect) {
                 _radioSelections[group.id] = choice.id;
               } else {
-                final s = Set<String>.from(
-                    _checkboxSelections[group.id] ?? {});
+                final s = Set<String>.from(_checkboxSelections[group.id] ?? {});
                 if (s.contains(choice.id)) {
                   s.remove(choice.id);
                 } else {
@@ -474,15 +475,12 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               }
             }),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primary : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isSelected
-                      ? AppColors.primary
-                      : Colors.grey.shade300,
+                  color: isSelected ? AppColors.primary : Colors.grey.shade300,
                   width: 2,
                 ),
                 boxShadow: isSelected
@@ -511,9 +509,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? Colors.white
-                          : AppColors.textPrimary,
+                      color: isSelected ? Colors.white : AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -527,7 +523,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
   }
 
   Widget _buildAddonsSection(bool isAr) {
-    if (_isLoadingCustomization || _addons.isEmpty) return const SizedBox.shrink();
+    if (_isLoadingCustomization || _addons.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -550,7 +548,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: Colors.orange.withValues(alpha: 0.08),
                   borderRadius: const BorderRadius.only(
@@ -573,8 +572,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                     ),
                     const Spacer(),
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(20),
@@ -603,8 +602,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                   }),
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       color: isChecked
                           ? Colors.orange.withValues(alpha: 0.05)
@@ -833,8 +832,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.primary,
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 20),
+                            padding: const EdgeInsets.symmetric(vertical: 20),
                             side: const BorderSide(
                                 color: AppColors.primary, width: 2),
                             shape: RoundedRectangleBorder(
@@ -854,8 +852,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 20),
+                            padding: const EdgeInsets.symmetric(vertical: 20),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),

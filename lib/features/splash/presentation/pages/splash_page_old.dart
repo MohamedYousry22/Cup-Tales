@@ -253,7 +253,8 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                         borderRadius: BorderRadius.circular(40),
                         boxShadow: [
                           BoxShadow(
-                            color: _accent.withValues(alpha: 0.50 * _glowAmt.value),
+                            color: _accent.withValues(
+                                alpha: 0.50 * _glowAmt.value),
                             blurRadius: 60,
                             spreadRadius: 10,
                           ),
@@ -494,8 +495,8 @@ class _BgPainter extends CustomPainter {
       final phase = rng.nextDouble() * 2 * pi;
       final dx = sin(t * 2 * pi + phase) * 4;
       final dy = cos(t * 2 * pi + phase) * 6;
-      stroke.color =
-          Colors.white.withValues(alpha: (0.12 + rng.nextDouble() * 0.10) * opacity);
+      stroke.color = Colors.white
+          .withValues(alpha: (0.12 + rng.nextDouble() * 0.10) * opacity);
 
       if (i % 2 == 0) {
         final bw = 15.0 + rng.nextDouble() * 12;

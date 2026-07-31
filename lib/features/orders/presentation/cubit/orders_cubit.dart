@@ -18,12 +18,18 @@ class OrdersCubit extends Cubit<OrdersState> {
   OrdersCubit() : super(const OrdersInitial()) {
     // Wait for Hive AND Supabase to be ready before initializing usecase or loading
     di.appReady.then((_) {
+      if (isClosed) return;
       _getUserOrders = GetUserOrdersUseCase(
         OrdersRepositoryImpl(Supabase.instance.client),
       );
       _loadFromCache();
       _startSubscription();
     });
+  }
+
+  @override
+  void emit(OrdersState state) {
+    if (!isClosed) super.emit(state);
   }
 
   void _startSubscription() {
@@ -107,6 +113,11 @@ class OrdersCubit extends Cubit<OrdersState> {
           totalAmount: (map['total_amount'] as num).toDouble(),
           status: map['status'] as String? ?? 'pending',
           branchName: map['branch_name'] as String? ?? '',
+          fulfillmentType: map['fulfillment_type'] as String? ?? 'pickup',
+          deliveryAddress: map['delivery_address'] as String?,
+          customerNote: map['customer_note'] as String?,
+          customerPhone: map['customer_phone'] as String?,
+          paymentMethod: map['payment_method'] as String? ?? 'cash',
           promoCode: map['promo_code'] as String?,
           discountAmount: ((map['discount_amount'] ?? 0.0) as num).toDouble(),
           hiddenForUsers: _parseHiddenForUsers(map['hidden_for_users']),
@@ -161,6 +172,11 @@ class OrdersCubit extends Cubit<OrdersState> {
               'total_amount': e.totalAmount,
               'status': e.status,
               'branch_name': e.branchName,
+              'fulfillment_type': e.fulfillmentType,
+              'delivery_address': e.deliveryAddress,
+              'customer_note': e.customerNote,
+              'customer_phone': e.customerPhone,
+              'payment_method': e.paymentMethod,
               'promo_code': e.promoCode,
               'discount_amount': e.discountAmount,
               'hidden_for_users': e.hiddenForUsers,

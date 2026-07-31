@@ -3,8 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import '../../../../core/services/auth_service.dart';
+import '../../../../core/services/notification_service.dart';
+import '../../../../core/utils/phone_validator.dart';
 import '../../../../core/di/injection_container.dart' as di;
 import '../../../../core/local_storage/hive_service.dart';
+import '../../../../core/local_storage/prefs_service.dart';
 import '../../data/profile_service.dart';
 import 'auth_state.dart';
 
@@ -24,16 +27,21 @@ class AuthCubit extends Cubit<AuthState> {
         _profileService = profileService,
         super(AuthInitial()) {
     // Defer Supabase listener until after Supabase.initialize() completes.
-    di.appReady.then((_) => _initAuthStateListener());
+    di.appReady.then((_) {
+      if (!isClosed) _initAuthStateListener();
+    });
   }
 
   bool _isInitialStateHandled = false;
-  bool _isGoogleSignInInProgress = false; // Lock to ignore signedOut during Google account switch
+  bool _isGoogleSignInInProgress =
+      false; // Lock to ignore signedOut during Google account switch
   StreamSubscription<supabase.AuthState>? _authSubscription;
 
   void _initAuthStateListener() {
+    if (isClosed || _authSubscription != null) return;
     _authSubscription = supabase.Supabase.instance.client.auth.onAuthStateChange
         .listen((data) async {
+      if (isClosed) return;
       final supabase.AuthChangeEvent event = data.event;
       final supabase.Session? session = data.session;
 
@@ -47,6 +55,7 @@ class AuthCubit extends Cubit<AuthState> {
         // This is the ONLY reliable signal for "is the user logged in at startup".
         _isInitialStateHandled = true;
         if (session != null) {
+          di.sl<NotificationService>().identifyUser(session.user.id).ignore();
           // Fetch and cache the full profile data on startup
           try {
             final profile = await _profileService.getProfile(session.user.id);
@@ -54,7 +63,9 @@ class AuthCubit extends Cubit<AuthState> {
               _hive.profileBox.put('current_user', profile);
             }
           } catch (e) {
-            if (kDebugMode) debugPrint('[AuthCubit] profile fetch on startup failed: $e');
+            if (kDebugMode) {
+              debugPrint('[AuthCubit] profile fetch on startup failed: $e');
+            }
           }
 
           try {
@@ -74,6 +85,7 @@ class AuthCubit extends Cubit<AuthState> {
           _isInitialStateHandled) {
         // Explicit sign-in after startup (login form, Google OAuth redirect).
         final user = session.user;
+        di.sl<NotificationService>().identifyUser(user.id).ignore();
         if (kDebugMode) debugPrint('[AuthCubit] signed in: ${user.email}');
 
         try {
@@ -106,10 +118,15 @@ class AuthCubit extends Cubit<AuthState> {
         // Ignore signedOut if it was triggered by our own Google account-picker reset.
         // Without this guard, googleSignIn.signOut() causes a ghost navigation to LoginPage.
         if (_isGoogleSignInInProgress) {
-          if (kDebugMode) debugPrint('[AuthCubit] signedOut ignored — Google Sign-In in progress');
+          if (kDebugMode) {
+            debugPrint(
+              '[AuthCubit] signedOut ignored — Google Sign-In in progress',
+            );
+          }
           return;
         }
         if (kDebugMode) debugPrint('[AuthCubit] signed out');
+        di.sl<NotificationService>().clearUserIdentity().ignore();
         emit(AuthUnauthenticated());
       } else if (event == supabase.AuthChangeEvent.passwordRecovery) {
         _isInitialStateHandled = true;
@@ -123,6 +140,11 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> close() {
     _authSubscription?.cancel();
     return super.close();
+  }
+
+  @override
+  void emit(AuthState state) {
+    if (!isClosed) super.emit(state);
   }
 
   // ─── App Start ───────────────────────────────────────────────────────────────
@@ -179,8 +201,10 @@ class AuthCubit extends Cubit<AuthState> {
       emit(const AuthError('Please enter your full name'));
       return;
     }
-    if (phone.trim().isEmpty) {
-      emit(const AuthError('Please enter your phone number'));
+    if (!EgyptianPhoneValidator.isValid(phone)) {
+      emit(const AuthError(
+        'Please enter a valid 11-digit Egyptian mobile number',
+      ));
       return;
     }
     if (email.trim().isEmpty || !email.contains('@')) {
@@ -238,11 +262,11 @@ class AuthCubit extends Cubit<AuthState> {
       // ── Fallback: manually confirm state ────────────────────────────────────
       // signInWithIdToken is a direct token exchange — it does NOT reliably fire
       // a stream 'signedIn' event. Without this, the UI stays stuck on AuthLoading.
-      final session =
-          supabase.Supabase.instance.client.auth.currentSession;
+      final session = supabase.Supabase.instance.client.auth.currentSession;
       if (session != null) {
         if (kDebugMode) {
-          debugPrint('[AuthCubit] Google Sign-In success — manually emitting AuthAuthenticated');
+          debugPrint(
+              '[AuthCubit] Google Sign-In success — manually emitting AuthAuthenticated');
         }
         try {
           final role = await _profileService.getUserRole();
@@ -295,6 +319,27 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
     try {
       await _authService.signOut();
+      emit(AuthUnauthenticated());
+    } catch (e) {
+      emit(AuthError(e.toString().replaceFirst('Exception: ', '')));
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    final userId = supabase.Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      emit(const AuthError('No account is currently signed in.'));
+      return;
+    }
+
+    emit(AuthLoading());
+    try {
+      await _authService.deleteAccount();
+      await Future.wait([
+        _hive.clearAccountData(),
+        di.sl<PrefsService>().clearUserData(userId),
+        di.sl<NotificationService>().clearUserIdentity(),
+      ]);
       emit(AuthUnauthenticated());
     } catch (e) {
       emit(AuthError(e.toString().replaceFirst('Exception: ', '')));

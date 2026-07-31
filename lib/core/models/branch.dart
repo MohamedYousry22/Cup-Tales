@@ -47,15 +47,9 @@ class Branch extends Equatable {
       [id, nameEn, nameAr, areaEn, areaAr, location, active];
 }
 
+const Set<String> supportedBranchIds = {'mahalla1', 'mahalla2'};
+
 List<Branch> appBranches = [
-  const Branch(
-    id: 'rehab',
-    nameEn: 'Rehab Branch',
-    nameAr: 'فرع الرحاب',
-    areaEn: 'New Cairo',
-    areaAr: 'القاهرة الجديدة',
-    location: 'https://maps.app.goo.gl/NAZnJfaY99HrSBYJ9',
-  ),
   const Branch(
     id: 'mahalla1',
     nameEn: 'Mahalla 1 (Tanta Road)',

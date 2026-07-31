@@ -8,7 +8,7 @@ import '../../../../core/localization/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
-import 'package:app_settings/app_settings.dart';
+import '../../../auth/presentation/cubit/auth_state.dart';
 
 class ProfilePage extends StatefulWidget {
   final int resetNonce;
@@ -22,6 +22,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   late Future<Map<String, dynamic>?> _profileFuture;
   final ScrollController _scrollController = ScrollController();
+  bool _isDeletingAccount = false;
 
   @override
   void initState() {
@@ -64,6 +65,53 @@ class _ProfilePageState extends State<ProfilePage> {
       0,
       duration: const Duration(milliseconds: 360),
       curve: Curves.easeOutCubic,
+    );
+  }
+
+  Future<void> _confirmDeleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.tr('Delete account?', 'حذف الحساب؟')),
+        content: Text(
+          context.tr(
+            'Your account, profile, saved addresses, cart and order history will be permanently deleted. This action cannot be undone.',
+            'سيتم حذف حسابك وبياناتك الشخصية وعناوينك المحفوظة والسلة وسجل الطلبات نهائيًا، ولا يمكن التراجع عن ذلك.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.tr('Cancel', 'إلغاء')),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(context.tr('Delete permanently', 'حذف نهائي')),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isDeletingAccount = true);
+    final authCubit = context.read<AuthCubit>();
+    await authCubit.deleteAccount();
+    if (!mounted) return;
+
+    if (authCubit.state is AuthError) {
+      final error = authCubit.state as AuthError;
+      setState(() => _isDeletingAccount = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      );
+      return;
+    }
+
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRouter.register,
+      (route) => false,
     );
   }
 
@@ -220,8 +268,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: context.loc.notifications,
                               subtitle: context.loc.notificationsSubtitle,
                               onTap: () {
-                                AppSettings.openAppSettings(
-                                  type: AppSettingsType.notification,
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRouter.notifications,
                                 );
                               },
                             ),
@@ -304,6 +353,38 @@ class _ProfilePageState extends State<ProfilePage> {
                               );
                             }
                           },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          border:
+                              Border.all(color: Colors.red.shade100, width: 2),
+                        ),
+                        child: _SettingsTile(
+                          icon: Icons.delete_forever_outlined,
+                          title: _isDeletingAccount
+                              ? context.tr(
+                                  'Deleting account...',
+                                  'جارٍ حذف الحساب...',
+                                )
+                              : context.tr(
+                                  'Delete account',
+                                  'حذف الحساب',
+                                ),
+                          subtitle: context.tr(
+                            'Permanently delete your account and associated data',
+                            'حذف الحساب والبيانات المرتبطة به نهائيًا',
+                          ),
+                          titleColor: Colors.red.shade700,
+                          iconBackgroundColor: Colors.red.shade50,
+                          iconColor: Colors.red.shade700,
+                          showChevron: false,
+                          onTap: _isDeletingAccount
+                              ? () {}
+                              : _confirmDeleteAccount,
                         ),
                       ),
                     ],

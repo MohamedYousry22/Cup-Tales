@@ -9,6 +9,7 @@ class HomeCubit extends Cubit<HomeState> {
   HomeCubit() : super(HomeInitial());
 
   void loadHomeData() async {
+    if (isClosed) return;
     emit(HomeLoading());
     // Simulate network delay
     await Future.delayed(const Duration(seconds: 1));
@@ -76,6 +77,7 @@ class HomeCubit extends Cubit<HomeState> {
         ),
       ];
 
+      if (isClosed) return;
       emit(
         HomeLoaded(
           banners: banners,
@@ -85,12 +87,12 @@ class HomeCubit extends Cubit<HomeState> {
         ),
       );
     } catch (e) {
-      emit(HomeError(e.toString()));
+      if (!isClosed) emit(HomeError(e.toString()));
     }
   }
 
   void selectCategory(String id) {
-    if (state is HomeLoaded) {
+    if (!isClosed && state is HomeLoaded) {
       final currentState = state as HomeLoaded;
       emit(currentState.copyWith(selectedCategoryId: id));
     }

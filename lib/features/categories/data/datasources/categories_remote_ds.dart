@@ -18,9 +18,11 @@ class CategoriesRemoteDSImpl implements CategoriesRemoteDS {
         .select()
         .order('created_at', ascending: true);
 
-    debugPrint('DEBUG: raw categoriesResponse from Supabase count: ${categoriesResponse.length}');
+    debugPrint(
+        'DEBUG: raw categoriesResponse from Supabase count: ${categoriesResponse.length}');
     if (categoriesResponse.isNotEmpty) {
-      debugPrint('DEBUG: First category keys: ${categoriesResponse.first.keys}');
+      debugPrint(
+          'DEBUG: First category keys: ${categoriesResponse.first.keys}');
       debugPrint('DEBUG: First category data: ${categoriesResponse.first}');
     }
 
@@ -40,9 +42,10 @@ class CategoriesRemoteDSImpl implements CategoriesRemoteDS {
     return rawCategories.map((rawCat) {
       final jsonCat = rawCat as Map<String, dynamic>;
       final catId = jsonCat['id'].toString();
-      final rawCatNameEn = (jsonCat['name_en']?.toString() ?? jsonCat['name']?.toString() ?? '');
+      final rawCatNameEn =
+          (jsonCat['name_en']?.toString() ?? jsonCat['name']?.toString() ?? '');
       final rawCatNameAr = jsonCat['name_ar']?.toString() ?? '';
-      
+
       String catNameAr = rawCatNameAr.trim();
       final catNameEnLower = rawCatNameEn.toLowerCase().trim();
 

@@ -98,8 +98,9 @@ class AppLocalizations {
   String get support => isAr ? 'الدعم' : 'Support';
 
   String get personalInfo => isAr ? 'البيانات الشخصية' : 'Personal Info';
-  String get personalInfoSubtitle =>
-      isAr ? 'تحديث الاسم والبريد' : 'Update name and email';
+  String get personalInfoSubtitle => isAr
+      ? 'تحديث الاسم والبريد والهاتف والعناوين'
+      : 'Update name, email, phone and addresses';
   String get personalInfoDemo => isAr
       ? 'أدوات التعديل غير متاحة (تجريبي)'
       : 'Editing is not supported yet (Demo)';

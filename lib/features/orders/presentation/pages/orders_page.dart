@@ -234,8 +234,9 @@ class _OrdersViewState extends State<_OrdersView> {
                       controller: _scrollController,
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                       itemCount: displayed.length,
-                      itemBuilder: (context, index) =>
-                          _OrderCard(order: displayed[index], displayNumber: displayed.length - index),
+                      itemBuilder: (context, index) => _OrderCard(
+                          order: displayed[index],
+                          displayNumber: displayed.length - index),
                     ),
                   ),
           ),
@@ -536,24 +537,73 @@ class _OrderCard extends StatelessWidget {
   }
 
   Widget _buildMeta(BuildContext context, bool isAr) {
+    final isDelivery = order.fulfillmentType == 'delivery';
+    final isDriveThru = order.fulfillmentType == 'drive_thru';
+    final fulfillmentLabel = isDelivery
+        ? context.tr('Home delivery', 'توصيل للمنزل')
+        : isDriveThru
+            ? 'Drive-thru • ${_getBranchName(context, order.branchName)}'
+            : _getBranchName(context, order.branchName);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      child: Row(
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 6,
         children: [
-          const Icon(Icons.storefront_rounded, size: 13, color: Colors.grey),
-          const SizedBox(width: 4),
-          Text(
-            _getBranchName(context, order.branchName),
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isDelivery
+                    ? Icons.delivery_dining_rounded
+                    : isDriveThru
+                        ? Icons.directions_car_filled_rounded
+                        : Icons.storefront_rounded,
+                size: 13,
+                color: Colors.grey,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                fulfillmentLabel,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          const Icon(Icons.calendar_today_rounded,
-              size: 12, color: Colors.grey),
-          const SizedBox(width: 4),
-          Text(
-            _formattedDate(order.createdAt),
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.calendar_today_rounded,
+                size: 12,
+                color: Colors.grey,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                _formattedDate(order.createdAt),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
           ),
+          if (isDelivery && order.deliveryAddress?.isNotEmpty == true)
+            SizedBox(
+              width: double.infinity,
+              child: Text(
+                order.deliveryAddress!,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ),
+          if (isDriveThru && order.customerNote?.isNotEmpty == true)
+            SizedBox(
+              width: double.infinity,
+              child: Text(
+                context.tr(
+                  'Vehicle: ${order.customerNote!}',
+                  'السيارة: ${order.customerNote!}',
+                ),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ),
         ],
       ),
     );
@@ -618,7 +668,6 @@ class _OrderCard extends StatelessWidget {
       '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
 
   static const Map<String, String> _branchArMap = {
-    'rehab': 'فرع الرحاب',
     'mahalla1': 'فرع المحلة 1 - طريق طنطا',
     'mahalla2': 'فرع المحلة 2 - ش رضا حافظ',
   };

@@ -66,5 +66,7 @@ android/client_secret_*.json
 *.aab
 *.apk
 *.ipa
+/release/*.zip
+/release/*.sha256
 /analyze_fresh.txt
 /pub_error.txt

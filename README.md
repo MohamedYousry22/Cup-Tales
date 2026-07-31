@@ -23,11 +23,14 @@ cart management, order tracking, and customer notifications.
 
 ## Features
 
-- Email/password and Google authentication
+- Email/password authentication on Android and iOS
+- Google Sign-In on Android
 - Persistent sessions and automatic sign-in restoration
 - Dynamic categories, products, and product details
 - Cart quantity management and automatic total calculation
-- Localized checkout and cash-on-delivery ordering
+- Pickup, drive-thru, and home-delivery checkout flows
+- Saved delivery addresses and mandatory verified-format phone numbers
+- Daily ordering hours enforced in both the app and database
 - Order history and status tracking
 - Push notifications through OneSignal
 - Arabic localization and responsive mobile layouts
@@ -70,8 +73,8 @@ lib/
 
 | Property | Value |
 | --- | --- |
-| App version | `1.0.2` |
-| Android version code | `3` |
+| App version | `1.0.4` |
+| Android version code | `5` |
 | Android application ID | `com.cuptales.app` |
 | Android target SDK | `36` |
 | Minimum Android version | Android 7.0 / API 24 |

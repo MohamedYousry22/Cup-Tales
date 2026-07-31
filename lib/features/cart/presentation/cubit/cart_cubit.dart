@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/services/business_hours_service.dart';
 import '../../domain/entities/supabase_cart_item.dart';
 import '../../../../core/local_storage/hive_service.dart';
 import '../../../../core/di/injection_container.dart' as di;
@@ -10,7 +11,14 @@ class CartCubit extends Cubit<CartState> {
 
   CartCubit() : super(CartLoading()) {
     // Wait for Hive to be ready before loading cache
-    di.appReady.then((_) => _loadFromCache());
+    di.appReady.then((_) {
+      if (!isClosed) _loadFromCache();
+    });
+  }
+
+  @override
+  void emit(CartState state) {
+    if (!isClosed) super.emit(state);
   }
 
   void _loadFromCache() {
@@ -305,6 +313,10 @@ class CartCubit extends Cubit<CartState> {
   Future<void> checkout({
     String? branchId,
     String? branchName,
+    String fulfillmentType = 'pickup',
+    String? deliveryAddress,
+    String? customerNote,
+    String paymentMethod = 'cash',
     double promoDiscount = 0.0,
     String? appliedPromo,
     bool isArabic = true,
@@ -315,6 +327,11 @@ class CartCubit extends Cubit<CartState> {
     final cartState = state as CartLoaded;
     final items = cartState.items;
     if (items.isEmpty) return;
+    if (!BusinessHoursService.isOpen()) {
+      throw Exception(isArabic
+          ? 'نستقبل الطلبات يوميًا من 7:30 صباحًا حتى 12:30 بعد منتصف الليل.'
+          : 'Orders are available daily from 7:30 AM to 12:30 AM.');
+    }
 
     emit(CartCheckingOut());
     try {
@@ -363,6 +380,10 @@ class CartCubit extends Cubit<CartState> {
         'total_amount': double.parse(totalAmount.toStringAsFixed(2)),
         'branch_id': branchId,
         'branch_name': branchName,
+        'fulfillment_type': fulfillmentType,
+        'delivery_address': deliveryAddress,
+        'customer_note': customerNote,
+        'payment_method': paymentMethod,
         'promo_code': appliedPromo,
         'discount_amount': double.parse(promoDiscount.toStringAsFixed(2)),
         'items': normalizedItems,
@@ -380,6 +401,16 @@ class CartCubit extends Cubit<CartState> {
         discount: cartState.discount,
         promoCode: cartState.appliedPromoCode,
       );
+      if (e.toString().contains('CUP_TALES_CLOSED')) {
+        throw Exception(isArabic
+            ? 'نستقبل الطلبات يوميًا من 7:30 صباحًا حتى 12:30 بعد منتصف الليل.'
+            : 'Orders are available daily from 7:30 AM to 12:30 AM.');
+      }
+      if (e.toString().contains('CUP_TALES_PHONE_REQUIRED')) {
+        throw Exception(isArabic
+            ? 'يرجى إضافة رقم موبايل مصري صحيح إلى بياناتك قبل تأكيد الطلب.'
+            : 'Add a valid Egyptian mobile number before confirming the order.');
+      }
       throw Exception(e.toString().replaceFirst('Exception: ', ''));
     }
   }
@@ -388,10 +419,6 @@ class CartCubit extends Cubit<CartState> {
     List<SupabaseCartItem> items,
     String? branchId,
   ) async {
-    if (branchId == null || branchId.trim().isEmpty) {
-      return items;
-    }
-
     final productIds = items.map((item) => item.productId).toSet().toList();
     if (productIds.isEmpty) return const [];
 
@@ -405,6 +432,12 @@ class CartCubit extends Cubit<CartState> {
     for (final row in productRows as List<dynamic>) {
       final product = row as Map<String, dynamic>;
       globallyActiveIds.add(product['id'].toString());
+    }
+
+    if (branchId == null || branchId.trim().isEmpty) {
+      return items
+          .where((item) => !globallyActiveIds.contains(item.productId))
+          .toList();
     }
 
     final branchStatusRows = await _client

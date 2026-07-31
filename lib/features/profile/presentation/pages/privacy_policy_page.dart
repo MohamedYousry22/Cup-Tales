@@ -1,12 +1,68 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});
 
+  static final Uri _privacyUrl = Uri.parse(
+    'https://mohamedyousry22.github.io/Cup-Tales/privacy-policy.html',
+  );
+  static final Uri _supportEmail = Uri(
+    scheme: 'mailto',
+    path: 'm1662006@gmail.com',
+    queryParameters: {'subject': 'Cup Tales Privacy Request'},
+  );
+
   @override
   Widget build(BuildContext context) {
+    final sections = <({String title, String body})>[
+      (
+        title: context.tr('Information we collect', 'البيانات التي نجمعها'),
+        body: context.tr(
+          'We collect the name, email address and phone number you provide, saved delivery addresses, order and cart details, and the identifiers needed for authentication and push notifications.',
+          'نجمع الاسم والبريد الإلكتروني ورقم الهاتف الذي تقدمه، وعناوين التوصيل المحفوظة، وتفاصيل الطلبات والسلة، والمعرّفات اللازمة لتسجيل الدخول وإرسال الإشعارات.',
+        ),
+      ),
+      (
+        title: context.tr('How we use data', 'كيفية استخدام البيانات'),
+        body: context.tr(
+          'We use this information to create and manage your account, prepare and deliver orders, contact you about an order, remember your preferences, prevent abuse, and send order updates when notifications are enabled.',
+          'نستخدم هذه البيانات لإنشاء الحساب وإدارته، وتجهيز الطلبات وتوصيلها، والتواصل معك بشأن الطلب، وحفظ تفضيلاتك، ومنع إساءة الاستخدام، وإرسال تحديثات الطلب عند تفعيل الإشعارات.',
+        ),
+      ),
+      (
+        title: context.tr('Service providers', 'مقدمو الخدمات'),
+        body: context.tr(
+          'Cup Tales uses Supabase for authentication and database services, Firebase and Google for Android services and Google Sign-In, and OneSignal for push notifications. These providers process only the data needed to provide their services.',
+          'يستخدم Cup Tales خدمة Supabase لتسجيل الدخول وقاعدة البيانات، وFirebase وGoogle لخدمات Android وتسجيل الدخول باستخدام Google، وOneSignal للإشعارات. ويعالج هؤلاء المزودون البيانات اللازمة لتقديم خدماتهم فقط.',
+        ),
+      ),
+      (
+        title: context.tr('Retention and deletion', 'الاحتفاظ والحذف'),
+        body: context.tr(
+          'Your data is kept while your account is active. You can permanently delete your account and associated profile, addresses, cart and order history from Profile > Delete account. You can also contact us using the link below.',
+          'نحتفظ ببياناتك طوال فترة نشاط الحساب. يمكنك حذف الحساب والملف الشخصي والعناوين والسلة وسجل الطلبات نهائيًا من الملف الشخصي ← حذف الحساب، كما يمكنك التواصل معنا من الرابط أدناه.',
+        ),
+      ),
+      (
+        title: context.tr('Your choices', 'اختياراتك'),
+        body: context.tr(
+          'You can edit your profile and saved addresses, disable push notifications, sign out, or delete your account. Notification permission can also be changed from your device settings.',
+          'يمكنك تعديل بياناتك وعناوينك المحفوظة، وإيقاف الإشعارات، وتسجيل الخروج، أو حذف الحساب. ويمكن تغيير إذن الإشعارات من إعدادات الجهاز أيضًا.',
+        ),
+      ),
+      (
+        title: context.tr('Security', 'الأمان'),
+        body: context.tr(
+          'We use authenticated connections, database access controls and row-level security to protect account data. No internet service can guarantee absolute security, but we limit access to what is required to operate the service.',
+          'نستخدم اتصالات موثقة وصلاحيات لقاعدة البيانات وسياسات أمان على مستوى الصفوف لحماية بيانات الحساب. لا توجد خدمة إنترنت تضمن الأمان المطلق، لكننا نقصر الوصول على ما يلزم لتشغيل الخدمة.',
+        ),
+      ),
+    ];
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -28,86 +84,99 @@ class PrivacyPolicyPage extends StatelessWidget {
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.grey.shade100),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 120),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.grey.shade100),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final section in sections) ...[
+                _PolicySection(title: section.title, body: section.body),
+                const SizedBox(height: 24),
               ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.tr(
-                        'Data Collection & Usage', 'جمع البيانات واستخدامها'),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    context.tr(
-                      'Welcome to Cup Tales! We take your privacy seriously. This document outlines the types of personal information we receive and collect when you use our application, as well as some of the steps we take to safeguard that information.',
-                      'مرحباً بك في كاب تيلز! الخصوصية مهمة جداً بالنسبة لنا. توضح هذه الوثيقة أنواع المعلومات الشخصية التي نجمعها أثناء استخدامك لتطبيقنا، بالإضافة إلى الخطوات التي نتخذها لحماية تلك المعلومات.',
-                    ),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                      height: 1.6,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    context.tr('Information Security', 'أمن المعلومات'),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    context.tr(
-                      'We implement security measures to maintain the safety of your personal information when you enter, submit, or access your personal information online. Our app relies on Supabase Auth ensuring enterprise-grade data protection.',
-                      'نحن نتخذ تدابير أمنية مشددة للحفاظ على سلامة معلوماتك الشخصية. التطبيق يعتمد على بروتوكولات حماية متطورة و Supabase Auth لضمان تشفير بياناتك بالكامل.',
-                    ),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                      height: 1.6,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Center(
-                    child: Text(
-                      context.tr(
-                          'Last Updated: Sep 2024', 'آخر تحديث: سبتمبر ٢٠٢٤'),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                  ),
-                ],
+              Text(
+                context.tr('Contact us', 'تواصل معنا'),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
               ),
-            ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: () => launchUrl(_supportEmail),
+                icon: const Icon(Icons.email_outlined),
+                label: const Text('m1662006@gmail.com'),
+              ),
+              TextButton.icon(
+                onPressed: () => launchUrl(
+                  _privacyUrl,
+                  mode: LaunchMode.externalApplication,
+                ),
+                icon: const Icon(Icons.open_in_new),
+                label: Text(
+                  context.tr(
+                    'View the web privacy policy',
+                    'عرض سياسة الخصوصية على الويب',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: Text(
+                  context.tr(
+                    'Last updated: August 1, 2026',
+                    'آخر تحديث: 1 أغسطس 2026',
+                  ),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _PolicySection extends StatelessWidget {
+  const _PolicySection({required this.title, required this.body});
+
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          body,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey.shade700,
+            height: 1.6,
+          ),
+        ),
+      ],
     );
   }
 }

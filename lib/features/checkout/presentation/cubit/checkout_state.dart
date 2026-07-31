@@ -10,8 +10,12 @@ abstract class CheckoutState extends Equatable {
 
 class CheckoutInitial extends CheckoutState {
   final String selectedMethod;
+  final String fulfillmentType;
   final Branch? selectedBranch;
   final List<Branch> branches;
+  final List<String> savedAddresses;
+  final String? selectedAddress;
+  final String driveThruNote;
 
   // ── Promo Code ────────────────────────────────────────────────────────────
   /// The validated promo code string (null = none applied)
@@ -25,8 +29,12 @@ class CheckoutInitial extends CheckoutState {
 
   const CheckoutInitial({
     this.selectedMethod = 'Cashier',
+    this.fulfillmentType = 'pickup',
     this.selectedBranch,
     this.branches = const [],
+    this.savedAddresses = const [],
+    this.selectedAddress,
+    this.driveThruNote = '',
     this.appliedPromo,
     this.promoDiscount = 0.0,
     this.promoError,
@@ -34,16 +42,28 @@ class CheckoutInitial extends CheckoutState {
 
   CheckoutInitial copyWith({
     String? selectedMethod,
-    Branch? selectedBranch,
+    String? fulfillmentType,
+    Object? selectedBranch = _sentinel,
     List<Branch>? branches,
+    List<String>? savedAddresses,
+    Object? selectedAddress = _sentinel,
+    String? driveThruNote,
     Object? appliedPromo = _sentinel,
     double? promoDiscount,
     Object? promoError = _sentinel,
   }) {
     return CheckoutInitial(
       selectedMethod: selectedMethod ?? this.selectedMethod,
-      selectedBranch: selectedBranch ?? this.selectedBranch,
+      fulfillmentType: fulfillmentType ?? this.fulfillmentType,
+      selectedBranch: selectedBranch == _sentinel
+          ? this.selectedBranch
+          : selectedBranch as Branch?,
       branches: branches ?? this.branches,
+      savedAddresses: savedAddresses ?? this.savedAddresses,
+      selectedAddress: selectedAddress == _sentinel
+          ? this.selectedAddress
+          : selectedAddress as String?,
+      driveThruNote: driveThruNote ?? this.driveThruNote,
       appliedPromo: appliedPromo == _sentinel
           ? this.appliedPromo
           : appliedPromo as String?,
@@ -56,8 +76,12 @@ class CheckoutInitial extends CheckoutState {
   @override
   List<Object?> get props => [
         selectedMethod,
+        fulfillmentType,
         selectedBranch,
         branches,
+        savedAddresses,
+        selectedAddress,
+        driveThruNote,
         appliedPromo,
         promoDiscount,
         promoError,
@@ -66,7 +90,14 @@ class CheckoutInitial extends CheckoutState {
 
 /// Emitted while the promo code API call is in flight.
 /// The UI shows a spinner; all other page interactions are preserved.
-class CheckoutValidatingPromo extends CheckoutState {}
+class CheckoutValidatingPromo extends CheckoutState {
+  final CheckoutInitial data;
+
+  const CheckoutValidatingPromo(this.data);
+
+  @override
+  List<Object?> get props => [data];
+}
 
 class CheckoutProcessing extends CheckoutState {}
 

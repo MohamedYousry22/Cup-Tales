@@ -28,4 +28,12 @@ class HiveService {
     await adminBox.clear();
     // Profile and Orders should persist after logout per user request
   }
+
+  Future<void> clearAccountData() async {
+    await Future.wait([
+      cartBox.clear(),
+      profileBox.clear(),
+      ordersBox.clear(),
+    ]);
+  }
 }

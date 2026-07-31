@@ -5,17 +5,15 @@ import 'package:flutter/material.dart';
 // Design tokens for a premium, high-end feel
 // ─────────────────────────────────────────────────────────────────────────────
 class _DS {
-  static const Color bg = Color(0xFF000000);
   static const Color card = Color(0xFF000000); // Pure black
   static const Color border = Color(0xFF1A1A1A);
   static const Color glowBase = Color(0xFFFFFFFF);
   static const Color textPrimary = Color(0xFFFFFFFF);
-  static const Color textMuted = Color(0xFF6B6B6B);
 
-  static const double cardW      = 148.0;
-  static const double cardH      = 175.0; 
+  static const double cardW = 148.0;
+  static const double cardH = 175.0;
   static const double cardRadius = 28.0;
-  static const double logoSize   = 36.0; // Optimized size with internal padding
+  static const double logoSize = 36.0; // Optimized size with internal padding
 }
 
 /// A global utility to show and hide the CustomLoadingOverlay.
@@ -351,7 +349,7 @@ class _AntigravityLoaderCoreState extends State<AntigravityLoaderCore>
           width: widget.size,
           height: widget.size,
           // Added internal padding so the logo doesn't touch the edges
-          padding: EdgeInsets.all(widget.size * 0.18), 
+          padding: EdgeInsets.all(widget.size * 0.18),
           decoration: BoxDecoration(
             color: Colors.black,
             borderRadius: BorderRadius.circular(widget.size * 0.22),

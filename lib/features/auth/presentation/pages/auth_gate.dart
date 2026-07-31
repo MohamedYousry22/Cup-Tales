@@ -34,7 +34,7 @@ class AuthGate extends StatelessWidget {
               body: Center(child: AntigravityLoaderCore(size: 80)),
             );
           } else if (state is AuthAuthenticated) {
-            return MainPage(key: ValueKey('auth_${state.runtimeType}')); 
+            return MainPage(key: ValueKey('auth_${state.runtimeType}'));
           } else {
             return RegisterPage(key: ValueKey('auth_${state.runtimeType}'));
           }

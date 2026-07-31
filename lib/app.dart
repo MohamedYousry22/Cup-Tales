@@ -13,6 +13,7 @@ import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/auth/presentation/pages/auth_gate.dart';
 import 'features/orders/presentation/cubit/orders_cubit.dart';
 import 'core/widgets/app_background.dart';
+import 'core/widgets/business_hours_gate.dart';
 import 'core/di/injection_container.dart' as di;
 
 // Cached theme — never rebuilt, computed once
@@ -88,7 +89,11 @@ class _CupTalesAppState extends State<CupTalesApp> {
           GlobalCupertinoLocalizations.delegate,
         ],
         builder: (context, child) {
-          return AppBackground(child: child ?? const SizedBox.shrink());
+          return AppBackground(
+            child: BusinessHoursGate(
+              child: child ?? const SizedBox.shrink(),
+            ),
+          );
         },
         navigatorObservers: [RouteTracker()],
         supportedLocales: const [Locale('en', ''), Locale('ar', '')],

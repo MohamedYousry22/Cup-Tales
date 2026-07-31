@@ -85,6 +85,11 @@ class AuthService {
 
   Future<void> signInWithGoogle() async {
     try {
+      if (defaultTargetPlatform != TargetPlatform.android) {
+        throw const AuthException(
+          'Google Sign-In is available on Android only.',
+        );
+      }
       if (kDebugMode) {
         debugPrint('AuthService: Starting Native Google Sign-In');
       }
@@ -178,6 +183,42 @@ class AuthService {
       await _client.auth.signOut();
     } catch (e) {
       throw Exception('Sign out failed.');
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    final user = _client.auth.currentUser;
+    if (user == null) {
+      throw Exception('No account is currently signed in.');
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        final googleSignIn = GoogleSignIn(
+          serverClientId: SupabaseConfig.googleWebClientId,
+        );
+        await googleSignIn.disconnect();
+      } catch (_) {
+        // Email/password users do not have a Google connection to revoke.
+      }
+    }
+
+    try {
+      await _client.rpc('delete_my_account');
+    } on PostgrestException catch (e) {
+      throw Exception(e.message);
+    } catch (_) {
+      throw Exception('Account deletion failed. Please try again.');
+    }
+
+    // The database function removes the auth user, so Supabase may report that
+    // the server-side session no longer exists. Local cleanup is still needed,
+    // but that expected response must not turn a successful deletion into an
+    // error in the UI.
+    try {
+      await _client.auth.signOut(scope: SignOutScope.local);
+    } catch (_) {
+      // Account deletion already succeeded on the server.
     }
   }
 

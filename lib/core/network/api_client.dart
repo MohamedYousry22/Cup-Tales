@@ -33,7 +33,8 @@ class ApiClient {
   }
 
   // Example generic GET method
-  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) async {
+  Future<Response> get(String path,
+      {Map<String, dynamic>? queryParameters}) async {
     try {
       return await dio.get(path, queryParameters: queryParameters);
     } catch (e) {

@@ -1,7 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/di/injection_container.dart' as di;
-import 'core/local_storage/hive_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/branch_service.dart';
 import 'core/config/supabase_config.dart';
@@ -36,22 +36,23 @@ void main() async {
 
   // 2. Initialize OneSignal
   try {
-    OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-    OneSignal.initialize("70034a90-6547-41cc-8791-c310527ea5dd");
-
-    // Request permission (blocking before runApp for debug/init)
-    await OneSignal.Notifications.requestPermission(true);
+    OneSignal.Debug.setLogLevel(
+      kDebugMode ? OSLogLevel.verbose : OSLogLevel.none,
+    );
+    await OneSignal.initialize("70034a90-6547-41cc-8791-c310527ea5dd");
 
     // Debug - helpful for dashboard verification
     // Giving it a 3-second delay to ensure registration is complete after a fresh install
-    debugPrint('DEBUG: Delay started (3 seconds to OneSignal ID)');
-    Future.delayed(const Duration(seconds: 3), () {
-      debugPrint('DEBUG: Delay finished (Fetching OneSignal ID)');
-      final sub = OneSignal.User.pushSubscription;
-      debugPrint('DEBUG OneSignal optedIn: ${sub.optedIn}');
-      debugPrint('DEBUG OneSignal id: ${sub.id}');
-      debugPrint('DEBUG OneSignal token: ${sub.token}');
-    });
+    if (kDebugMode) {
+      debugPrint('DEBUG: Delay started (3 seconds to OneSignal ID)');
+      Future.delayed(const Duration(seconds: 3), () {
+        debugPrint('DEBUG: Delay finished (Fetching OneSignal ID)');
+        final sub = OneSignal.User.pushSubscription;
+        debugPrint('DEBUG OneSignal optedIn: ${sub.optedIn}');
+        debugPrint('DEBUG OneSignal id: ${sub.id}');
+        debugPrint('DEBUG OneSignal token: ${sub.token}');
+      });
+    }
 
     // Show notifications as banner even when app is open (foreground)
     OneSignal.Notifications.addForegroundWillDisplayListener((event) {
@@ -96,21 +97,17 @@ void main() async {
     Future.delayed(const Duration(milliseconds: 300), () async {
       debugPrint('[Startup] starting heavy async init');
 
-      // Supabase + SharedPreferences + Hive in parallel
-      await Future.wait([
-        Supabase.initialize(
-          url: SupabaseConfig.url,
-          anonKey: SupabaseConfig.anonKey,
-          realtimeClientOptions: const RealtimeClientOptions(
-            timeout: Duration(seconds: 60),
-            logLevel: RealtimeLogLevel.info,
-          ),
+      // Supabase must finish before appReady is completed because the auth,
+      // cart and orders cubits access Supabase as soon as appReady resolves.
+      await Supabase.initialize(
+        url: SupabaseConfig.url,
+        anonKey: SupabaseConfig.anonKey,
+        realtimeClientOptions: const RealtimeClientOptions(
+          timeout: Duration(seconds: 60),
+          logLevel: RealtimeLogLevel.info,
         ),
-        di.initAsync(), // registers PrefsService, completes di.appReady
-        di
-            .sl<HiveService>()
-            .init(), // Ensure Hive is ready before Cubits use it
-      ]);
+      );
+      await di.initAsync();
 
       debugPrint('[Startup] async init done');
 

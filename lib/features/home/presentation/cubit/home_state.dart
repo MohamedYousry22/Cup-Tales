@@ -43,11 +43,11 @@ class HomeLoaded extends HomeState {
 
   @override
   List<Object?> get props => [
-    banners,
-    featuredProducts,
-    categories,
-    selectedCategoryId,
-  ];
+        banners,
+        featuredProducts,
+        categories,
+        selectedCategoryId,
+      ];
 }
 
 class HomeError extends HomeState {

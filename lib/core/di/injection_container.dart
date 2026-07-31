@@ -47,7 +47,12 @@ void registerSync() {
 
   // Features
   sl.registerFactory(() => LanguageCubit());
-  sl.registerFactory(() => AuthCubit(authService: sl(), profileService: sl()));
+  // A single auth cubit must be shared by the splash screen and AuthGate.
+  // Multiple instances subscribe to Supabase twice and can emit conflicting
+  // authentication states.
+  sl.registerLazySingleton(
+    () => AuthCubit(authService: sl(), profileService: sl()),
+  );
 
   // Checkout
   sl.registerFactoryParam<CheckoutCubit, CartCubit, void>(
@@ -55,6 +60,7 @@ void registerSync() {
       cartCubit,
       sl<BranchService>(),
       sl<PromoCodeService>(),
+      sl<PrefsService>(),
     ),
   );
 

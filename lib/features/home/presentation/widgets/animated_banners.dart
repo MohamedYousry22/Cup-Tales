@@ -10,6 +10,7 @@ class AnimatedBanners extends StatefulWidget {
   @override
   State<AnimatedBanners> createState() => _AnimatedBannersState();
 }
+
 class _AnimatedBannersState extends State<AnimatedBanners> {
   final PageController _pageController = PageController(viewportFraction: 0.9);
   int _currentPage = 0;

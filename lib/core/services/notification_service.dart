@@ -1,27 +1,36 @@
+import 'package:onesignal_flutter/onesignal_flutter.dart';
+
 class NotificationService {
-  // TODO: Add firebase_messaging dependency and setup
-  // final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  bool get hasSystemPermission => OneSignal.Notifications.permission;
+
+  bool get isPushEnabled =>
+      hasSystemPermission && OneSignal.User.pushSubscription.optedIn == true;
 
   Future<void> init() async {
-    // Request permission
-    // NotificationSettings settings = await _firebaseMessaging.requestPermission();
-    
-    // if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-    //   debugPrint('User granted permission');
-    // }
-
-    // Foreground messages wrapper
-    // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    //   debugPrint('Got a message whilst in the foreground!');
-    //   debugPrint('Message data: ${message.data}');
-    // });
-    
-    // Background messages wrapper (need top-level function)
-    // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    // OneSignal is initialized in main before this service is resolved.
   }
 
-  Future<String?> getToken() async {
-    // return await _firebaseMessaging.getToken();
-    return "mock_fcm_token"; // Mocked token since FCM is not fully configured
+  Future<bool> enablePush() async {
+    var granted = OneSignal.Notifications.permission;
+    if (!granted) {
+      granted = await OneSignal.Notifications.requestPermission(true);
+    }
+    if (!granted) return false;
+
+    await OneSignal.User.pushSubscription.optIn();
+    return OneSignal.User.pushSubscription.optedIn == true;
+  }
+
+  Future<void> disablePush() async {
+    await OneSignal.User.pushSubscription.optOut();
+  }
+
+  Future<void> identifyUser(String userId) async {
+    if (userId.trim().isEmpty) return;
+    await OneSignal.login(userId);
+  }
+
+  Future<void> clearUserIdentity() async {
+    await OneSignal.logout();
   }
 }
