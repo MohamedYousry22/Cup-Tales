@@ -22,22 +22,22 @@ class PrivacyPolicyPage extends StatelessWidget {
       (
         title: context.tr('Information we collect', 'البيانات التي نجمعها'),
         body: context.tr(
-          'We collect the name, email address and phone number you provide, saved delivery addresses, order and cart details, and the identifiers needed for authentication and push notifications.',
-          'نجمع الاسم والبريد الإلكتروني ورقم الهاتف الذي تقدمه، وعناوين التوصيل المحفوظة، وتفاصيل الطلبات والسلة، والمعرّفات اللازمة لتسجيل الدخول وإرسال الإشعارات.',
+          'We collect the name, email address and phone number you provide, saved delivery addresses, order and cart details, and identifiers needed for authentication. Android users who enable push notifications also provide a notification identifier.',
+          'نجمع الاسم والبريد الإلكتروني ورقم الهاتف الذي تقدمه، وعناوين التوصيل المحفوظة، وتفاصيل الطلبات والسلة، والمعرّفات اللازمة لتسجيل الدخول. ويوفّر مستخدمو Android معرّف إشعارات عند تفعيل الإشعارات.',
         ),
       ),
       (
         title: context.tr('How we use data', 'كيفية استخدام البيانات'),
         body: context.tr(
-          'We use this information to create and manage your account, prepare and deliver orders, contact you about an order, remember your preferences, prevent abuse, and send order updates when notifications are enabled.',
-          'نستخدم هذه البيانات لإنشاء الحساب وإدارته، وتجهيز الطلبات وتوصيلها، والتواصل معك بشأن الطلب، وحفظ تفضيلاتك، ومنع إساءة الاستخدام، وإرسال تحديثات الطلب عند تفعيل الإشعارات.',
+          'We use this information to create and manage your account, prepare and deliver orders, contact you about an order, remember your preferences, prevent abuse, and send Android order updates when notifications are enabled.',
+          'نستخدم هذه البيانات لإنشاء الحساب وإدارته، وتجهيز الطلبات وتوصيلها، والتواصل معك بشأن الطلب، وحفظ تفضيلاتك، ومنع إساءة الاستخدام، وإرسال تحديثات الطلب على Android عند تفعيل الإشعارات.',
         ),
       ),
       (
         title: context.tr('Service providers', 'مقدمو الخدمات'),
         body: context.tr(
-          'Cup Tales uses Supabase for authentication and database services, Firebase and Google for Android services and Google Sign-In, and OneSignal for push notifications. These providers process only the data needed to provide their services.',
-          'يستخدم Cup Tales خدمة Supabase لتسجيل الدخول وقاعدة البيانات، وFirebase وGoogle لخدمات Android وتسجيل الدخول باستخدام Google، وOneSignal للإشعارات. ويعالج هؤلاء المزودون البيانات اللازمة لتقديم خدماتهم فقط.',
+          'Cup Tales uses Supabase for authentication and database services. On Android, Firebase and Google provide Google Sign-In and OneSignal provides optional push notifications. iOS uses Cup Tales email/password authentication and does not initialize Google Sign-In or push notifications in this release.',
+          'يستخدم Cup Tales خدمة Supabase لتسجيل الدخول وقاعدة البيانات. وعلى Android توفّر Firebase وGoogle تسجيل الدخول باستخدام Google، وتوفّر OneSignal الإشعارات الاختيارية. ويستخدم iOS تسجيل Cup Tales بالبريد وكلمة المرور فقط، من دون تشغيل تسجيل Google أو الإشعارات في هذا الإصدار.',
         ),
       ),
       (
@@ -50,8 +50,8 @@ class PrivacyPolicyPage extends StatelessWidget {
       (
         title: context.tr('Your choices', 'اختياراتك'),
         body: context.tr(
-          'You can edit your profile and saved addresses, disable push notifications, sign out, or delete your account. Notification permission can also be changed from your device settings.',
-          'يمكنك تعديل بياناتك وعناوينك المحفوظة، وإيقاف الإشعارات، وتسجيل الخروج، أو حذف الحساب. ويمكن تغيير إذن الإشعارات من إعدادات الجهاز أيضًا.',
+          'You can edit your profile and saved addresses, sign out, or delete your account. Android users can also disable push notifications in the app or device settings.',
+          'يمكنك تعديل بياناتك وعناوينك المحفوظة، وتسجيل الخروج، أو حذف الحساب. ويمكن لمستخدمي Android أيضًا إيقاف الإشعارات من التطبيق أو إعدادات الجهاز.',
         ),
       ),
       (
@@ -130,8 +130,8 @@ class PrivacyPolicyPage extends StatelessWidget {
               Center(
                 child: Text(
                   context.tr(
-                    'Last updated: August 1, 2026',
-                    'آخر تحديث: 1 أغسطس 2026',
+                    'Last updated: August 2, 2026',
+                    'آخر تحديث: 2 أغسطس 2026',
                   ),
                   style: TextStyle(
                     fontSize: 12,

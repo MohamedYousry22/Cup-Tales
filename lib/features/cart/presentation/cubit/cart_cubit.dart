@@ -327,7 +327,7 @@ class CartCubit extends Cubit<CartState> {
     final cartState = state as CartLoaded;
     final items = cartState.items;
     if (items.isEmpty) return;
-    if (!BusinessHoursService.isOpen()) {
+    if (!BusinessHoursService.canPlaceOrder(userId: user.id)) {
       throw Exception(isArabic
           ? 'نستقبل الطلبات يوميًا من 7:30 صباحًا حتى 12:30 بعد منتصف الليل.'
           : 'Orders are available daily from 7:30 AM to 12:30 AM.');

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/localization/app_language.dart';
@@ -262,18 +263,22 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             const _Divider(),
                             const _LanguageTile(),
-                            const _Divider(),
-                            _SettingsTile(
-                              icon: Icons.notifications,
-                              title: context.loc.notifications,
-                              subtitle: context.loc.notificationsSubtitle,
-                              onTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  AppRouter.notifications,
-                                );
-                              },
-                            ),
+                            if (!kIsWeb &&
+                                defaultTargetPlatform ==
+                                    TargetPlatform.android) ...[
+                              const _Divider(),
+                              _SettingsTile(
+                                icon: Icons.notifications,
+                                title: context.loc.notifications,
+                                subtitle: context.loc.notificationsSubtitle,
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRouter.notifications,
+                                  );
+                                },
+                              ),
+                            ],
                           ],
                         ),
                       ),

@@ -27,4 +27,21 @@ void main() {
       isFalse,
     );
   });
+
+  test('App Review account can place orders outside normal hours', () {
+    expect(
+      BusinessHoursService.canPlaceOrder(
+        userId: BusinessHoursService.appReviewUserId,
+        dateTime: DateTime(2026, 8, 2, 4),
+      ),
+      isTrue,
+    );
+    expect(
+      BusinessHoursService.canPlaceOrder(
+        userId: 'regular-user',
+        dateTime: DateTime(2026, 8, 2, 4),
+      ),
+      isFalse,
+    );
+  });
 }

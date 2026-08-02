@@ -32,7 +32,7 @@ cart management, order tracking, and customer notifications.
 - Saved delivery addresses and mandatory verified-format phone numbers
 - Daily ordering hours enforced in both the app and database
 - Order history and status tracking
-- Push notifications through OneSignal
+- Android push notifications through OneSignal
 - Arabic localization and responsive mobile layouts
 - Branded launcher icons and native splash experience
 - Android 16 / API 36 support
@@ -73,8 +73,8 @@ lib/
 
 | Property | Value |
 | --- | --- |
-| App version | `1.0.4` |
-| Android version code | `5` |
+| App version | `1.0.5` |
+| Android version code | `6` |
 | Android application ID | `com.cuptales.app` |
 | Android target SDK | `36` |
 | Minimum Android version | Android 7.0 / API 24 |
@@ -120,6 +120,12 @@ flutter build ios --release
 Android release signing values belong in `android/key.properties`. Keystores,
 certificates, generated release artifacts, OAuth client-secret downloads, and
 local environment files are intentionally excluded from version control.
+
+## Store Support
+
+- Privacy policy: https://mohamedyousry22.github.io/Cup-Tales/privacy-policy.html
+- Account deletion: https://mohamedyousry22.github.io/Cup-Tales/delete-account.html
+- Support: https://mohamedyousry22.github.io/Cup-Tales/support.html
 
 ## Contributors
 

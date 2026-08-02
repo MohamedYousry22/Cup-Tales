@@ -1,7 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class NotificationService {
-  bool get hasSystemPermission => OneSignal.Notifications.permission;
+  bool get _isSupported =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  bool get hasSystemPermission =>
+      _isSupported && OneSignal.Notifications.permission;
 
   bool get isPushEnabled =>
       hasSystemPermission && OneSignal.User.pushSubscription.optedIn == true;
@@ -11,6 +16,7 @@ class NotificationService {
   }
 
   Future<bool> enablePush() async {
+    if (!_isSupported) return false;
     var granted = OneSignal.Notifications.permission;
     if (!granted) {
       granted = await OneSignal.Notifications.requestPermission(true);
@@ -22,15 +28,17 @@ class NotificationService {
   }
 
   Future<void> disablePush() async {
+    if (!_isSupported) return;
     await OneSignal.User.pushSubscription.optOut();
   }
 
   Future<void> identifyUser(String userId) async {
-    if (userId.trim().isEmpty) return;
+    if (!_isSupported || userId.trim().isEmpty) return;
     await OneSignal.login(userId);
   }
 
   Future<void> clearUserIdentity() async {
+    if (!_isSupported) return;
     await OneSignal.logout();
   }
 }

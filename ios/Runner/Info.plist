@@ -30,7 +30,6 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>io.supabase.flutter</string>
-				<string>com.googleusercontent.apps.684663003564-3a8a4tabuemqu2qfvm3n34bomr1sc405</string>
 			</array>
 		</dict>
 	</array>

@@ -89,10 +89,14 @@ class _CupTalesAppState extends State<CupTalesApp> {
           GlobalCupertinoLocalizations.delegate,
         ],
         builder: (context, child) {
+          final appContent = child ?? const SizedBox.shrink();
           return AppBackground(
-            child: BusinessHoursGate(
-              child: child ?? const SizedBox.shrink(),
-            ),
+            // iOS remains browseable around the clock. Order submission is
+            // still guarded in CartCubit and in the database. Android keeps
+            // the full branded closed-hours experience requested by Cup Tales.
+            child: defaultTargetPlatform == TargetPlatform.iOS
+                ? appContent
+                : BusinessHoursGate(child: appContent),
           );
         },
         navigatorObservers: [RouteTracker()],
